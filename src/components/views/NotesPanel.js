@@ -201,6 +201,116 @@ export class NotesPanel extends LitElement {
             padding: 8px 10px;
         }
 
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb, var(--border));
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--scrollbar-thumb-hover, var(--text-muted));
+        }
+
+        .card.clickable {
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+
+        .card.clickable:hover {
+            border-color: var(--text-muted);
+        }
+
+        .card.overflowing .card-body.clamped {
+            -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent);
+        }
+
+        .open-hint {
+            color: var(--text-muted);
+            font-size: 16px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .more-hint {
+            display: none;
+            margin-top: 4px;
+            font-size: var(--font-size-xs);
+            color: var(--accent);
+        }
+
+        .card.overflowing .more-hint,
+        .card:not(.overflowing) .card-body:not(.clamped) ~ .more-hint {
+            display: block;
+        }
+
+        .detail {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            height: 100%;
+            outline: none;
+        }
+
+        .detail-bar {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: var(--space-sm);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .spacer {
+            flex: 1;
+        }
+
+        .detail .editor {
+            margin: var(--space-sm);
+        }
+
+        .detail-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: var(--space-sm) var(--space-md) var(--space-md);
+        }
+
+        .detail-title {
+            font-size: var(--font-size-base, 15px);
+            font-weight: var(--font-weight-semibold);
+            margin-bottom: var(--space-xs);
+            overflow-wrap: anywhere;
+            user-select: text;
+            cursor: text;
+        }
+
+        .detail-title.untitled {
+            color: var(--text-muted);
+        }
+
+        .detail-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: var(--font-size-xs);
+            color: var(--text-muted);
+            margin-bottom: var(--space-sm);
+        }
+
+        .card-body.detail-body {
+            font-size: var(--font-size-sm);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin-top: var(--space-xs);
+        }
+
         .card-head {
             display: flex;
             align-items: flex-start;
@@ -243,7 +353,6 @@ export class NotesPanel extends LitElement {
         .card-body.clamped {
             max-height: 4.6em;
             overflow: hidden;
-            -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent);
         }
 
         :host(:not([compact])) .card-body.clamped {
@@ -296,6 +405,12 @@ export class NotesPanel extends LitElement {
             padding: 6px 8px;
             border-radius: var(--radius-sm);
             overflow-x: auto;
+        }
+
+        .card-body pre,
+        .card-body pre code {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
         }
 
         .card-body pre code {
@@ -398,6 +513,7 @@ export class NotesPanel extends LitElement {
         _editingId: { state: true },
         _draft: { state: true },
         _expanded: { state: true },
+        _openId: { state: true },
         _copiedId: { state: true },
         _confirmDeleteId: { state: true },
         _error: { state: true },
@@ -414,6 +530,8 @@ export class NotesPanel extends LitElement {
         this._editingId = null;
         this._draft = { ...EMPTY_DRAFT };
         this._expanded = new Set();
+        this._openId = null;
+        this._onHostKeydown = this._onHostKeydown.bind(this);
         this._copiedId = null;
         this._confirmDeleteId = null;
         this._error = '';
@@ -423,6 +541,7 @@ export class NotesPanel extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
+        this.addEventListener('keydown', this._onHostKeydown);
         this._unsubscribe = senpai.notes.onUpdate(list => (this._notes = list));
         senpai.notes.list().then(result => {
             if (result.success) this._notes = result.data;
@@ -432,7 +551,35 @@ export class NotesPanel extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         this._unsubscribe?.();
+        this.removeEventListener('keydown', this._onHostKeydown);
         clearTimeout(this._copiedTimer);
+    }
+
+    updated() {
+        // Show a "Show more" hint only on cards whose text is actually cut off.
+        for (const card of this.shadowRoot.querySelectorAll('.card')) {
+            const body = card.querySelector('.card-body.clamped');
+            card.classList.toggle('overflowing', Boolean(body) && body.scrollHeight > body.clientHeight + 2);
+        }
+    }
+
+    _onHostKeydown(e) {
+        if (e.key === 'Escape' && this._openId && !this._editingId) {
+            e.stopPropagation();
+            this._openId = null;
+        }
+    }
+
+    /** Clicking anywhere on a card opens it (side panel) or expands it (Notes page), unless the user is selecting text or using a control. */
+    _onCardClick(e, note) {
+        if (e.composedPath().some(el => el instanceof HTMLElement && el.matches?.('button, input, textarea, label, a'))) return;
+        if (String(this.shadowRoot.getSelection?.() || window.getSelection() || '').trim()) return;
+        if (this.compact) {
+            this._openId = note.id;
+            this.updateComplete.then(() => this.shadowRoot.querySelector('.detail')?.focus());
+        } else {
+            this._toggleExpanded(note.id);
+        }
     }
 
     _filtered() {
@@ -567,12 +714,18 @@ export class NotesPanel extends LitElement {
 
         const expanded = this._expanded.has(note.id);
         return html`
-            <div class="card">
-                <div class="card-head" @click=${() => this._toggleExpanded(note.id)} title=${expanded ? 'Collapse' : 'Expand'}>
+            <div
+                class="card clickable"
+                @click=${e => this._onCardClick(e, note)}
+                title=${this.compact ? 'Open note' : expanded ? 'Collapse' : 'Expand'}
+            >
+                <div class="card-head">
                     <span class="card-title ${note.title ? '' : 'untitled'}">${note.title || 'Untitled note'}</span>
                     ${note.shareWithAI ? html`<span class="ai-badge" title="Shared with the AI">AI</span>` : ''}
+                    ${this.compact ? html`<span class="open-hint" aria-hidden="true">›</span>` : ''}
                 </div>
                 ${note.body ? html`<div class="card-body ${expanded ? '' : 'clamped'}" .innerHTML=${renderMarkdown(note.body)}></div>` : ''}
+                ${!this.compact && note.body ? html`<div class="more-hint">${expanded ? 'Show less' : 'Show more'}</div>` : ''}
                 <div class="card-actions">
                     ${
                         this.compact
@@ -590,6 +743,30 @@ export class NotesPanel extends LitElement {
                         ${this._confirmDeleteId === note.id ? 'Confirm' : 'Delete'}
                     </button>
                 </div>
+            </div>
+        `;
+    }
+
+    _renderDetail(note) {
+        return html`
+            <div class="detail" tabindex="-1">
+                <div class="detail-bar">
+                    <button class="btn ghost" @click=${() => (this._openId = null)} title="Back to all notes (Esc)">‹ All notes</button>
+                    <span class="spacer"></span>
+                    <button class="btn ghost" @click=${() => this._copy(note)}>${this._copiedId === note.id ? 'Copied' : 'Copy'}</button>
+                    <button class="btn ghost" @click=${() => this._startEdit(note)}>Edit</button>
+                </div>
+                ${
+                    this._editingId === note.id
+                        ? this._renderEditor()
+                        : html`
+                              <div class="detail-scroll">
+                                  <div class="detail-title ${note.title ? '' : 'untitled'}">${note.title || 'Untitled note'}</div>
+                                  ${note.shareWithAI ? html`<div class="detail-meta"><span class="ai-badge">AI</span> Shared with the AI</div>` : ''}
+                                  ${note.body ? html`<div class="card-body detail-body" .innerHTML=${renderMarkdown(note.body)}></div>` : ''}
+                              </div>
+                          `
+                }
             </div>
         `;
     }
@@ -616,6 +793,9 @@ export class NotesPanel extends LitElement {
 
     render() {
         const notes = this._filtered();
+
+        const openNote = this.compact && this._openId ? this._notes.find(note => note.id === this._openId) : null;
+        if (openNote) return this._renderDetail(openNote);
 
         return html`
             <div class="toolbar">
