@@ -1,5 +1,8 @@
 import { html, css, LitElement } from '../../assets/lit-core-2.7.4.min.js';
 
+const DEFAULT_CHAT_MODEL = 'google/gemini-3.8-flash';
+const DEFAULT_STT_MODEL = 'openai/whisper-large-v3-turbo';
+
 const LOCAL_LLM_PRESETS = [
     { value: 'unsloth/Qwen3.5-0.8B-GGUF:Q4_K_M', label: 'Qwen 3.5 0.8B Q4 — 0.74 GB · Fastest' },
     { value: 'unsloth/Qwen3.5-0.8B-GGUF:Q8_0', label: 'Qwen 3.5 0.8B Q8 — 1.02 GB' },
@@ -54,70 +57,6 @@ export class MainView extends LitElement {
             font-size: var(--font-size-sm);
             color: var(--text-muted);
             margin-bottom: var(--space-md);
-        }
-
-        /* ── Cloud promo card ── */
-
-        .cloud-promo {
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding: 14px 16px;
-            border-radius: var(--radius-md);
-            border: 1px solid rgba(59, 130, 246, 0.45);
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(139, 92, 246, 0.09) 100%);
-            cursor: pointer;
-            transition:
-                border-color 0.2s,
-                background 0.2s;
-        }
-
-        .cloud-promo:hover {
-            border-color: rgba(59, 130, 246, 0.65);
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.16) 0%, rgba(139, 92, 246, 0.12) 100%);
-            box-shadow:
-                0 0 20px rgba(59, 130, 246, 0.15),
-                0 0 40px rgba(139, 92, 246, 0.08);
-        }
-
-        .cloud-promo-glow {
-            position: absolute;
-            top: -40%;
-            right: -20%;
-            width: 120px;
-            height: 120px;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .cloud-promo-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .cloud-promo-title {
-            font-size: var(--font-size-sm);
-            font-weight: var(--font-weight-semibold);
-            color: var(--text-primary);
-        }
-
-        .cloud-promo-arrow {
-            color: var(--accent);
-            font-size: 16px;
-            transition: transform 0.2s;
-        }
-
-        .cloud-promo:hover .cloud-promo-arrow {
-            transform: translateX(2px);
-        }
-
-        .cloud-promo-desc {
-            font-size: var(--font-size-xs);
-            color: var(--text-secondary);
-            line-height: var(--line-height);
         }
 
         /* ── Form controls ── */
@@ -283,6 +222,20 @@ export class MainView extends LitElement {
         .form-hint {
             font-size: var(--font-size-xs);
             color: var(--text-muted);
+        }
+
+        .form-error {
+            font-size: var(--font-size-xs);
+            color: var(--danger, #ef4444);
+            line-height: var(--line-height);
+        }
+
+        .key-ok {
+            color: var(--success-color, #4caf50);
+        }
+
+        .key-error {
+            color: var(--danger, #ef4444);
         }
 
         .form-hint a,
@@ -658,7 +611,7 @@ export class MainView extends LitElement {
             margin: 0;
         }
 
-        .help-cloud-btn {
+        .help-switch-btn {
             background: #e8e8e8;
             color: #111111;
             border: none;
@@ -672,7 +625,7 @@ export class MainView extends LitElement {
             transition: opacity 0.15s;
         }
 
-        .help-cloud-btn:hover {
+        .help-switch-btn:hover {
             opacity: 0.9;
         }
 
@@ -694,16 +647,16 @@ export class MainView extends LitElement {
         onCancelDownload: { type: Function },
         // Internal state
         _mode: { state: true },
-        _token: { state: true },
-        _geminiKey: { state: true },
-        _groqKey: { state: true },
-        _openaiKey: { state: true },
-        _geminiLiveModel: { state: true },
-        _groqModel: { state: true },
-        _groqImageModel: { state: true },
-        _disableGroqThinking: { state: true },
-        _tokenError: { state: true },
+        _apiKey: { state: true },
+        _chatModel: { state: true },
+        _visionModel: { state: true },
+        _sttModel: { state: true },
+        _disableReasoning: { state: true },
         _keyError: { state: true },
+        _errorMessage: { state: true },
+        _keyStatus: { state: true },
+        _chatModels: { state: true },
+        _sttModels: { state: true },
         // Local AI state
         _localLlmModel: { state: true },
         _useCustomLocalLlmModel: { state: true },
@@ -722,17 +675,18 @@ export class MainView extends LitElement {
         this.downloadProgress = { active: false, label: '', percentage: null };
         this.onCancelDownload = () => {};
 
-        this._mode = 'byok';
-        this._token = '';
-        this._geminiKey = '';
-        this._groqKey = '';
-        this._openaiKey = '';
-        this._geminiLiveModel = 'gemini-3.1-flash-live-preview';
-        this._groqModel = 'qwen/qwen3.6-27b';
-        this._groqImageModel = 'qwen/qwen3.6-27b';
-        this._disableGroqThinking = true;
-        this._tokenError = false;
+        this._mode = 'openrouter';
+        this._apiKey = '';
+        this._chatModel = DEFAULT_CHAT_MODEL;
+        this._visionModel = DEFAULT_CHAT_MODEL;
+        this._sttModel = DEFAULT_STT_MODEL;
+        this._disableReasoning = true;
         this._keyError = false;
+        this._errorMessage = '';
+        this._keyStatus = null;
+        this._chatModels = [];
+        this._sttModels = [];
+        this._keyCheckTimer = null;
         this._showLocalHelp = false;
         this._localLlmModel = 'unsloth/Qwen3.5-4B-GGUF:Q4_K_M';
         this._useCustomLocalLlmModel = false;
@@ -749,28 +703,22 @@ export class MainView extends LitElement {
 
     async _loadFromStorage() {
         try {
-            const [config, prefs, creds] = await Promise.all([
-                cheatingDaddy.storage.getConfig(),
-                cheatingDaddy.storage.getPreferences(),
-                cheatingDaddy.storage.getCredentials().catch(() => ({})),
+            const [config, prefs, apiKey] = await Promise.all([
+                senpai.storage.getConfig(),
+                senpai.storage.getPreferences(),
+                senpai.storage.getOpenRouterApiKey().catch(() => ''),
             ]);
 
-            const storedMode = prefs.providerMode || 'byok';
-            this._mode = storedMode === 'cloud' ? 'byok' : storedMode;
-
-            if (storedMode === 'cloud') {
-                await cheatingDaddy.storage.updatePreference('providerMode', this._mode);
+            this._mode = prefs.providerMode === 'local' ? 'local' : 'openrouter';
+            if (prefs.providerMode !== this._mode) {
+                await senpai.storage.updatePreference('providerMode', this._mode);
             }
 
-            // Load keys
-            this._token = creds.cloudToken || '';
-            this._geminiKey = (await cheatingDaddy.storage.getApiKey().catch(() => '')) || '';
-            this._groqKey = (await cheatingDaddy.storage.getGroqApiKey().catch(() => '')) || '';
-            this._openaiKey = creds.openaiKey || '';
-            this._geminiLiveModel = config.geminiLiveModel || 'gemini-3.1-flash-live-preview';
-            this._groqModel = config.groqModel || 'qwen/qwen3.6-27b';
-            this._groqImageModel = config.groqImageModel || 'qwen/qwen3.6-27b';
-            this._disableGroqThinking = config.disableGroqThinking === true;
+            this._apiKey = apiKey || '';
+            this._chatModel = config.openrouterModel || DEFAULT_CHAT_MODEL;
+            this._visionModel = config.openrouterVisionModel || this._chatModel;
+            this._sttModel = config.openrouterTranscriptionModel || DEFAULT_STT_MODEL;
+            this._disableReasoning = config.disableReasoning !== false;
 
             // Load local AI settings
             this._localLlmModel = prefs.localLlmModel || 'unsloth/Qwen3.5-4B-GGUF:Q4_K_M';
@@ -778,9 +726,42 @@ export class MainView extends LitElement {
             this._whisperModel = prefs.whisperModel || 'tiny.en';
 
             this.requestUpdate();
+            this._loadModelCatalog();
+            if (this._apiKey) this._checkKey();
         } catch (e) {
             console.error('Error loading MainView storage:', e);
         }
+    }
+
+    async _loadModelCatalog() {
+        try {
+            const [chatModels, sttModels] = await Promise.all([senpai.openrouter.listModels(), senpai.openrouter.listModels('transcription')]);
+            this._chatModels = chatModels.filter(model => model.inputModalities.includes('text'));
+            this._sttModels = sttModels;
+        } catch (e) {
+            console.warn('Could not load OpenRouter model catalog:', e);
+        }
+    }
+
+    async _checkKey() {
+        if (!this._apiKey.trim()) {
+            this._keyStatus = null;
+            return;
+        }
+        this._keyStatus = { state: 'checking' };
+        const result = await senpai.openrouter.getKeyInfo();
+        if (result.success) {
+            const { limit_remaining: remaining, usage } = result.data || {};
+            const detail = Number.isFinite(remaining) ? `$${remaining.toFixed(2)} credit left` : `$${(usage || 0).toFixed(2)} used`;
+            this._keyStatus = { state: 'ok', text: `Key valid · ${detail}` };
+        } else {
+            this._keyStatus = { state: 'error', text: result.error || 'Invalid key' };
+        }
+    }
+
+    _formatPrice(model) {
+        const perMillion = Number(model.pricing?.prompt) * 1e6;
+        return Number.isFinite(perMillion) ? ` — $${perMillion.toFixed(2)}/M in` : '';
     }
 
     connectedCallback() {
@@ -792,6 +773,8 @@ export class MainView extends LitElement {
         super.disconnectedCallback();
         document.removeEventListener('keydown', this.boundKeydownHandler);
         if (this._animId) cancelAnimationFrame(this._animId);
+        clearTimeout(this._keyCheckTimer);
+        clearTimeout(this._errorTimer);
     }
 
     updated(changedProperties) {
@@ -916,71 +899,29 @@ export class MainView extends LitElement {
 
     async _saveMode(mode) {
         this._mode = mode;
-        this._tokenError = false;
         this._keyError = false;
-        await cheatingDaddy.storage.updatePreference('providerMode', mode);
+        this._errorMessage = '';
+        await senpai.storage.updatePreference('providerMode', mode);
         this.requestUpdate();
     }
 
-    async _saveToken(val) {
-        this._token = val;
-        this._tokenError = false;
-        try {
-            const creds = await cheatingDaddy.storage.getCredentials().catch(() => ({}));
-            await cheatingDaddy.storage.setCredentials({ ...creds, cloudToken: val });
-        } catch (e) {}
-        this.requestUpdate();
-    }
-
-    async _saveGeminiKey(val) {
-        this._geminiKey = val;
+    async _saveApiKey(val) {
+        this._apiKey = val;
         this._keyError = false;
-        await cheatingDaddy.storage.setApiKey(val);
-        this.requestUpdate();
+        this._errorMessage = '';
+        await senpai.storage.setOpenRouterApiKey(val);
+        clearTimeout(this._keyCheckTimer);
+        this._keyCheckTimer = setTimeout(() => this._checkKey(), 600);
     }
 
-    async _saveGroqKey(val) {
-        this._groqKey = val;
-        await cheatingDaddy.storage.setGroqApiKey(val);
-        this.requestUpdate();
-    }
-
-    async _saveGeminiLiveModel(val) {
-        this._geminiLiveModel = val;
-        await cheatingDaddy.storage.updateConfig('geminiLiveModel', val);
-        this.requestUpdate();
-    }
-
-    async _saveGroqModel(val) {
-        this._groqModel = val;
-        await cheatingDaddy.storage.updateConfig('groqModel', val);
-        this.requestUpdate();
-    }
-
-    async _saveGroqImageModel(val) {
-        this._groqImageModel = val;
-        await cheatingDaddy.storage.updateConfig('groqImageModel', val);
-        this.requestUpdate();
-    }
-
-    async _saveDisableGroqThinking(disabled) {
-        this._disableGroqThinking = disabled;
-        await cheatingDaddy.storage.updateConfig('disableGroqThinking', disabled);
-        this.requestUpdate();
-    }
-
-    async _saveOpenaiKey(val) {
-        this._openaiKey = val;
-        try {
-            const creds = await cheatingDaddy.storage.getCredentials().catch(() => ({}));
-            await cheatingDaddy.storage.setCredentials({ ...creds, openaiKey: val });
-        } catch (e) {}
-        this.requestUpdate();
+    async _saveConfig(field, key, val) {
+        this[field] = val;
+        await senpai.storage.updateConfig(key, val);
     }
 
     async _saveLocalLlmModel(val) {
         this._localLlmModel = val;
-        await cheatingDaddy.storage.updatePreference('localLlmModel', val);
+        await senpai.storage.updatePreference('localLlmModel', val);
         this.requestUpdate();
     }
 
@@ -997,7 +938,7 @@ export class MainView extends LitElement {
 
     async _saveWhisperModel(val) {
         this._whisperModel = val;
-        await cheatingDaddy.storage.updatePreference('whisperModel', val);
+        await senpai.storage.updatePreference('whisperModel', val);
         this.requestUpdate();
     }
 
@@ -1022,10 +963,9 @@ export class MainView extends LitElement {
     _handleStart() {
         if (this.isInitializing || this.downloadProgress.active) return;
 
-        if (this._mode === 'byok') {
-            if (!this._geminiKey.trim()) {
-                this._keyError = true;
-                this.requestUpdate();
+        if (this._mode === 'openrouter') {
+            if (!this._apiKey.trim()) {
+                this.triggerApiKeyError('Add your OpenRouter API key');
                 return;
             }
         } else if (this._mode === 'local') {
@@ -1037,14 +977,16 @@ export class MainView extends LitElement {
         this.onStart();
     }
 
-    triggerApiKeyError() {
+    triggerApiKeyError(message = '') {
         this._keyError = this._mode !== 'local';
+        this._errorMessage = message;
         this.requestUpdate();
-        setTimeout(() => {
-            this._tokenError = false;
+        clearTimeout(this._errorTimer);
+        this._errorTimer = setTimeout(() => {
             this._keyError = false;
+            this._errorMessage = '';
             this.requestUpdate();
-        }, 2000);
+        }, 6000);
     }
 
     // ── Render helpers ──
@@ -1142,11 +1084,7 @@ export class MainView extends LitElement {
         `;
     }
 
-    // ── Cloud mode ──
-    // Cloud UI intentionally disabled. Backend cloud wiring is still present in
-    // the codebase, but the renderer no longer exposes this setup path.
-
-    // ── BYOK mode ──
+    // ── OpenRouter mode ──
 
     _renderConfigChevron() {
         return html`
@@ -1156,86 +1094,108 @@ export class MainView extends LitElement {
         `;
     }
 
-    _renderByokMode() {
-        return html`
-            <details class="config-section">
-                <summary class="config-summary">
-                    <span class="config-summary-text">
-                        <span class="config-summary-title">Transcription</span>
-                        <span class="config-summary-description">Gemini Live connection</span>
-                    </span>
-                    ${this._renderConfigChevron()}
-                </summary>
-                <div class="config-content">
-                    <div class="form-group">
-                        <label class="form-label">Gemini API Key</label>
-                        <input
-                            type="password"
-                            placeholder="Required"
-                            .value=${this._geminiKey}
-                            @input=${e => this._saveGeminiKey(e.target.value)}
-                            class=${this._keyError ? 'error' : ''}
-                        />
-                        <div class="form-hint">
-                            <span class="link" @click=${() => this.onExternalLink('https://aistudio.google.com/apikey')}>Get Gemini key</span>
-                        </div>
-                    </div>
+    _renderOpenRouterMode() {
+        const visionModels = this._chatModels.filter(model => model.inputModalities.includes('image'));
+        const status = this._keyStatus;
 
-                    <div class="form-group">
-                        <label class="form-label">Gemini Live Model</label>
-                        <input type="text" .value=${this._geminiLiveModel} @input=${e => this._saveGeminiLiveModel(e.target.value)} />
-                    </div>
+        return html`
+            <div class="form-group">
+                <label class="form-label">OpenRouter API Key</label>
+                <input
+                    type="password"
+                    placeholder="sk-or-..."
+                    .value=${this._apiKey}
+                    @input=${e => this._saveApiKey(e.target.value.trim())}
+                    class=${this._keyError ? 'error' : ''}
+                />
+                <div class="form-hint">
+                    ${status?.state === 'checking' ? 'Checking key… · ' : ''}
+                    ${status?.state === 'ok' ? html`<span class="key-ok">${status.text}</span> · ` : ''}
+                    ${status?.state === 'error' ? html`<span class="key-error">${status.text}</span> · ` : ''}
+                    <span class="link" @click=${() => this.onExternalLink('https://openrouter.ai/keys')}>Get an OpenRouter key</span>
                 </div>
-            </details>
+                ${this._errorMessage && this._errorMessage !== status?.text ? html`<div class="form-error">${this._errorMessage}</div>` : ''}
+            </div>
+
+            <datalist id="chat-models">
+                ${this._chatModels.map(model => html`<option value=${model.id}>${model.name}${this._formatPrice(model)}</option>`)}
+            </datalist>
+            <datalist id="vision-models">
+                ${visionModels.map(model => html`<option value=${model.id}>${model.name}${this._formatPrice(model)}</option>`)}
+            </datalist>
+            <datalist id="stt-models">${this._sttModels.map(model => html`<option value=${model.id}>${model.name}</option>`)}</datalist>
 
             <details class="config-section">
                 <summary class="config-summary">
                     <span class="config-summary-text">
                         <span class="config-summary-title">AI responses</span>
-                        <span class="config-summary-description">Groq key and response model</span>
+                        <span class="config-summary-description">${this._chatModel}</span>
                     </span>
                     ${this._renderConfigChevron()}
                 </summary>
                 <div class="config-content">
                     <div class="form-group">
-                        <label class="form-label">Groq API Key</label>
-                        <input type="password" placeholder="Optional" .value=${this._groqKey} @input=${e => this._saveGroqKey(e.target.value)} />
-                        <div class="form-hint">
-                            <span class="link" @click=${() => this.onExternalLink('https://console.groq.com/keys')}>Get Groq key</span>
-                        </div>
+                        <label class="form-label">Answer model</label>
+                        <input
+                            type="text"
+                            list="chat-models"
+                            placeholder=${DEFAULT_CHAT_MODEL}
+                            .value=${this._chatModel}
+                            @change=${e => this._saveConfig('_chatModel', 'openrouterModel', e.target.value.trim() || DEFAULT_CHAT_MODEL)}
+                        />
+                        <div class="form-hint">Used for spoken questions and typed messages. Any model id from openrouter.ai/models.</div>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Groq Model</label>
-                        <input type="text" .value=${this._groqModel} @input=${e => this._saveGroqModel(e.target.value)} />
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Groq Image Model</label>
-                        <input type="text" .value=${this._groqImageModel} @input=${e => this._saveGroqImageModel(e.target.value)} />
+                        <label class="form-label">Screenshot model</label>
+                        <input
+                            type="text"
+                            list="vision-models"
+                            placeholder=${DEFAULT_CHAT_MODEL}
+                            .value=${this._visionModel}
+                            @change=${e => this._saveConfig('_visionModel', 'openrouterVisionModel', e.target.value.trim() || this._chatModel)}
+                        />
+                        <div class="form-hint">Must accept image input.</div>
                     </div>
 
                     <label class="config-checkbox">
                         <input
                             type="checkbox"
-                            .checked=${this._disableGroqThinking}
-                            @change=${e => this._saveDisableGroqThinking(e.target.checked)}
+                            .checked=${this._disableReasoning}
+                            @change=${e => this._saveConfig('_disableReasoning', 'disableReasoning', e.target.checked)}
                         />
                         <span class="config-checkbox-text">
                             <span class="config-summary-title">Disable thinking</span>
-                            <span class="config-summary-description">Faster responses with less internal reasoning</span>
+                            <span class="config-summary-description">Faster answers from reasoning models</span>
                         </span>
                     </label>
+                </div>
+            </details>
 
-                    <div class="config-note">
-                        If the Groq API key is empty, Gemini Live is used for answers instead. Its answer quality may be lower.
+            <details class="config-section">
+                <summary class="config-summary">
+                    <span class="config-summary-text">
+                        <span class="config-summary-title">Transcription</span>
+                        <span class="config-summary-description">${this._sttModel}</span>
+                    </span>
+                    ${this._renderConfigChevron()}
+                </summary>
+                <div class="config-content">
+                    <div class="form-group">
+                        <label class="form-label">Speech-to-text model</label>
+                        <input
+                            type="text"
+                            list="stt-models"
+                            placeholder=${DEFAULT_STT_MODEL}
+                            .value=${this._sttModel}
+                            @change=${e => this._saveConfig('_sttModel', 'openrouterTranscriptionModel', e.target.value.trim() || DEFAULT_STT_MODEL)}
+                        />
+                        <div class="form-hint">Speech is detected locally, then each utterance is sent to this model.</div>
                     </div>
                 </div>
             </details>
 
             ${this._renderStartButton()} ${this._renderDivider()}
-
-            <!-- Cloud promo intentionally removed from the active UI. -->
 
             <div class="mode-links">
                 <button class="mode-link" @click=${() => this._saveMode('local')}>Use local AI</button>
@@ -1308,10 +1268,8 @@ export class MainView extends LitElement {
 
             ${this._renderStartButton()} ${this._renderDivider()}
 
-            <!-- Cloud promo intentionally removed from the active UI. -->
-
             <div class="mode-links">
-                <button class="mode-link" @click=${() => this._saveMode('byok')}>Use own API keys</button>
+                <button class="mode-link" @click=${() => this._saveMode('openrouter')}>Use OpenRouter</button>
             </div>
         `;
     }
@@ -1335,16 +1293,17 @@ export class MainView extends LitElement {
                     this._mode === 'local'
                         ? html`
                               <div class="title-row">
-                                  <div class="page-title">Cheating Daddy <span class="mode-suffix">Local AI</span></div>
+                                  <div class="page-title">Senpai <span class="mode-suffix">Local AI</span></div>
                                   <button class="help-btn" @click=${this._openLocalHelp} aria-label="Open Local AI help">${helpIcon}</button>
                               </div>
                           `
-                        : html` <div class="page-title">${html`Cheating Daddy <span class="mode-suffix">BYOK</span>`}</div> `
+                        : html` <div class="page-title">Senpai <span class="mode-suffix">OpenRouter</span></div> `
                 }
-                <div class="page-subtitle">${this._mode === 'byok' ? 'Bring your own API keys' : 'Run models locally on your machine'}</div>
+                <div class="page-subtitle">
+                    ${this._mode === 'openrouter' ? 'Any model on OpenRouter, one API key' : 'Run models locally on your machine'}
+                </div>
 
-                <!-- Cloud mode render branch intentionally disabled. -->
-                ${this._mode === 'byok' ? this._renderByokMode() : ''} ${this._mode === 'local' ? this._renderLocalMode() : ''}
+                ${this._mode === 'openrouter' ? this._renderOpenRouterMode() : ''} ${this._mode === 'local' ? this._renderLocalMode() : ''}
             </div>
             ${this._mode === 'local' && this._showLocalHelp ? this._renderLocalHelp(closeIcon) : ''}
         `;
@@ -1363,8 +1322,8 @@ export class MainView extends LitElement {
                         <div class="help-section">
                             <div class="help-section-title">Native local AI</div>
                             <div class="help-section-text">
-                                Cheating Daddy runs llama.cpp and whisper.cpp directly. Everything stays on your computer — no external AI service or
-                                Ollama installation is required.
+                                Senpai runs llama.cpp and whisper.cpp directly. Everything stays on your computer — no external AI service or Ollama
+                                installation is required.
                             </div>
                         </div>
 
@@ -1372,7 +1331,7 @@ export class MainView extends LitElement {
                             <div class="help-section-title">Automatic setup</div>
                             <div class="help-section-text">
                                 The correct native runners, selected Whisper model, and language model are downloaded and checksum-verified on first
-                                use. They are stored in the Cheating Daddy config directory.
+                                use. They are stored in the Senpai config directory.
                             </div>
                         </div>
 
@@ -1398,18 +1357,18 @@ export class MainView extends LitElement {
                             <div class="help-section-title">Computer hanging or slow?</div>
                             <div class="help-section-text">
                                 Running models locally uses a lot of RAM and CPU. If your computer slows down or freezes, it's likely the LLM. Switch
-                                back to BYOK mode if you want to use a hosted provider instead.
+                                back to OpenRouter mode if you want to use a hosted model instead.
                             </div>
                         </div>
 
                         <button
-                            class="help-cloud-btn"
+                            class="help-switch-btn"
                             @click=${() => {
                                 this._closeLocalHelp();
-                                this._saveMode('byok');
+                                this._saveMode('openrouter');
                             }}
                         >
-                            Switch to BYOK
+                            Switch to OpenRouter
                         </button>
                     </div>
                 </section>

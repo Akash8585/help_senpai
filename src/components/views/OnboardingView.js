@@ -302,9 +302,9 @@ export class OnboardingView extends LitElement {
 
     async completeOnboarding() {
         if (this.contextText.trim()) {
-            await cheatingDaddy.storage.updatePreference('customPrompt', this.contextText.trim());
+            await senpai.storage.updatePreference('customPrompt', this.contextText.trim());
         }
-        await cheatingDaddy.storage.updateConfig('onboarded', true);
+        await senpai.storage.updateConfig('onboarded', true);
         this.onComplete();
     }
 
@@ -312,7 +312,7 @@ export class OnboardingView extends LitElement {
         if (this.currentSlide === 0) {
             return html`
                 <div class="slide">
-                    <div class="slide-title">Cheating Daddy</div>
+                    <div class="slide-title">Senpai</div>
                     <div class="slide-text">Real-time AI that listens, watches, and helps during interviews, meetings, and exams.</div>
                     <div class="actions">
                         <button class="btn-primary" @click=${() => { this.currentSlide = 1; }}>Continue</button>

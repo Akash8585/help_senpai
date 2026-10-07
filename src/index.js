@@ -4,14 +4,13 @@ if (require('electron-squirrel-startup')) {
 
 const { app, BrowserWindow, shell, ipcMain } = require('electron');
 const { createWindow, updateGlobalShortcuts } = require('./utils/window');
-const { setupGeminiIpcHandlers, stopMacOSAudioCapture, sendToRenderer } = require('./utils/gemini');
+const { setupSessionIpcHandlers, stopMacOSAudioCapture, closeActiveSession, sendToRenderer } = require('./utils/session');
 const storage = require('./storage');
 
-const geminiSessionRef = { current: null };
 let mainWindow = null;
 
 function createMainWindow() {
-    mainWindow = createWindow(sendToRenderer, geminiSessionRef);
+    mainWindow = createWindow(sendToRenderer, closeActiveSession);
     return mainWindow;
 }
 
@@ -26,7 +25,7 @@ app.whenReady().then(async () => {
     }
 
     createMainWindow();
-    setupGeminiIpcHandlers(geminiSessionRef);
+    setupSessionIpcHandlers();
     setupStorageIpcHandlers();
     setupGeneralIpcHandlers();
 });
@@ -39,7 +38,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
-    stopMacOSAudioCapture();
+    closeActiveSession();
     require('./utils/localai').closeLocalSession();
 });
 
@@ -100,40 +99,21 @@ function setupStorageIpcHandlers() {
         }
     });
 
-    ipcMain.handle('storage:get-api-key', async () => {
+    ipcMain.handle('storage:get-openrouter-api-key', async () => {
         try {
-            return { success: true, data: storage.getApiKey() };
+            return { success: true, data: storage.getOpenRouterApiKey() };
         } catch (error) {
-            console.error('Error getting API key:', error);
+            console.error('Error getting OpenRouter API key:', error);
             return { success: false, error: error.message };
         }
     });
 
-    ipcMain.handle('storage:set-api-key', async (event, apiKey) => {
+    ipcMain.handle('storage:set-openrouter-api-key', async (event, apiKey) => {
         try {
-            storage.setApiKey(apiKey);
+            storage.setOpenRouterApiKey(typeof apiKey === 'string' ? apiKey.trim() : '');
             return { success: true };
         } catch (error) {
-            console.error('Error setting API key:', error);
-            return { success: false, error: error.message };
-        }
-    });
-
-    ipcMain.handle('storage:get-groq-api-key', async () => {
-        try {
-            return { success: true, data: storage.getGroqApiKey() };
-        } catch (error) {
-            console.error('Error getting Groq API key:', error);
-            return { success: false, error: error.message };
-        }
-    });
-
-    ipcMain.handle('storage:set-groq-api-key', async (event, groqApiKey) => {
-        try {
-            storage.setGroqApiKey(groqApiKey);
-            return { success: true };
-        } catch (error) {
-            console.error('Error setting Groq API key:', error);
+            console.error('Error setting OpenRouter API key:', error);
             return { success: false, error: error.message };
         }
     });
@@ -237,16 +217,6 @@ function setupStorageIpcHandlers() {
         }
     });
 
-    // ============ LIMITS ============
-    ipcMain.handle('storage:get-today-limits', async () => {
-        try {
-            return { success: true, data: storage.getTodayLimits() };
-        } catch (error) {
-            console.error('Error getting today limits:', error);
-            return { success: false, error: error.message };
-        }
-    });
-
     // ============ CLEAR ALL ============
     ipcMain.handle('storage:clear-all', async () => {
         try {
@@ -289,7 +259,7 @@ function setupGeneralIpcHandlers() {
         if (mainWindow) {
             // Also save to storage
             storage.setKeybinds(newKeybinds);
-            updateGlobalShortcuts(newKeybinds, mainWindow, sendToRenderer, geminiSessionRef);
+            updateGlobalShortcuts(newKeybinds, mainWindow, sendToRenderer, closeActiveSession);
         }
     });
 

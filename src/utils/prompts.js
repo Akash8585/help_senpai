@@ -10,8 +10,8 @@ const profilePrompts = {
 - Focus on the most essential information only`,
 
         searchUsage: `**SEARCH TOOL USAGE:**
-- If the interviewer mentions **recent events, news, or current trends** (anything from the last 6 months), **ALWAYS use Google search** to get up-to-date information
-- If they ask about **company-specific information, recent acquisitions, funding, or leadership changes**, use Google search first
+- If the interviewer mentions **recent events, news, or current trends** (anything from the last 6 months), **ALWAYS use web search** to get up-to-date information
+- If they ask about **company-specific information, recent acquisitions, funding, or leadership changes**, use web search first
 - If they mention **new technologies, frameworks, or industry developments**, search for the latest information
 - After searching, provide a **concise, informed response** based on the real-time data`,
 
@@ -47,7 +47,7 @@ Provide only the exact words to say in **markdown format**. No coaching, no "you
 - Focus on the most essential information only`,
 
         searchUsage: `**SEARCH TOOL USAGE:**
-- If the prospect mentions **recent industry trends, market changes, or current events**, **ALWAYS use Google search** to get up-to-date information
+- If the prospect mentions **recent industry trends, market changes, or current events**, **ALWAYS use web search** to get up-to-date information
 - If they reference **competitor information, recent funding news, or market data**, search for the latest information first
 - If they ask about **new regulations, industry reports, or recent developments**, use search to provide accurate data
 - After searching, provide a **concise, informed response** that demonstrates current market knowledge`,
@@ -78,7 +78,7 @@ Provide only the exact words to say in **markdown format**. Be persuasive but no
 - Focus on the most essential information only`,
 
         searchUsage: `**SEARCH TOOL USAGE:**
-- If participants mention **recent industry news, regulatory changes, or market updates**, **ALWAYS use Google search** for current information
+- If participants mention **recent industry news, regulatory changes, or market updates**, **ALWAYS use web search** for current information
 - If they reference **competitor activities, recent reports, or current statistics**, search for the latest data first
 - If they discuss **new technologies, tools, or industry developments**, use search to provide accurate insights
 - After searching, provide a **concise, informed response** that adds value to the discussion`,
@@ -109,7 +109,7 @@ Provide only the exact words to say in **markdown format**. Be clear, concise, a
 - Focus on the most essential information only`,
 
         searchUsage: `**SEARCH TOOL USAGE:**
-- If the audience asks about **recent market trends, current statistics, or latest industry data**, **ALWAYS use Google search** for up-to-date information
+- If the audience asks about **recent market trends, current statistics, or latest industry data**, **ALWAYS use web search** for up-to-date information
 - If they reference **recent events, new competitors, or current market conditions**, search for the latest information first
 - If they inquire about **recent studies, reports, or breaking news** in your field, use search to provide accurate data
 - After searching, provide a **concise, credible response** with current facts and figures`,
@@ -140,7 +140,7 @@ Provide only the exact words to say in **markdown format**. Be confident, engagi
 - Focus on the most essential information only`,
 
         searchUsage: `**SEARCH TOOL USAGE:**
-- If they mention **recent market pricing, current industry standards, or competitor offers**, **ALWAYS use Google search** for current benchmarks
+- If they mention **recent market pricing, current industry standards, or competitor offers**, **ALWAYS use web search** for current benchmarks
 - If they reference **recent legal changes, new regulations, or market conditions**, search for the latest information first
 - If they discuss **recent company news, financial performance, or industry developments**, use search to provide informed responses
 - After searching, provide a **strategic, well-informed response** that leverages current market intelligence`,
@@ -171,7 +171,7 @@ Provide only the exact words to say in **markdown format**. Focus on finding win
 - Provide only brief justification for correctness`,
 
         searchUsage: `**SEARCH TOOL USAGE:**
-- If the question involves **recent information, current events, or updated facts**, **ALWAYS use Google search** for the latest data
+- If the question involves **recent information, current events, or updated facts**, **ALWAYS use web search** for the latest data
 - If they reference **specific dates, statistics, or factual information** that might be outdated, search for current information
 - If they ask about **recent research, new theories, or updated methodologies**, search for the latest information
 - After searching, provide **direct, accurate answers** with minimal explanation`,
@@ -201,11 +201,11 @@ Provide direct exam answers in **markdown format**. Include the question text, t
     },
 };
 
-function buildSystemPrompt(promptParts, customPrompt = '', googleSearchEnabled = true) {
+function buildSystemPrompt(promptParts, customPrompt = '', webSearchEnabled = true) {
     const sections = [promptParts.intro, '\n\n', promptParts.formatRequirements];
 
-    // Only add search usage section if Google Search is enabled
-    if (googleSearchEnabled) {
+    // Only add search usage section if web search is enabled
+    if (webSearchEnabled) {
         sections.push('\n\n', promptParts.searchUsage);
     }
 
@@ -214,9 +214,9 @@ function buildSystemPrompt(promptParts, customPrompt = '', googleSearchEnabled =
     return sections.join('');
 }
 
-function getSystemPrompt(profile, customPrompt = '', googleSearchEnabled = true) {
+function getSystemPrompt(profile, customPrompt = '', webSearchEnabled = true) {
     const promptParts = profilePrompts[profile] || profilePrompts.interview;
-    return buildSystemPrompt(promptParts, customPrompt, googleSearchEnabled);
+    return buildSystemPrompt(promptParts, customPrompt, webSearchEnabled);
 }
 
 module.exports = {

@@ -42,19 +42,12 @@ const storage = {
     async setCredentials(credentials) {
         return ipcRenderer.invoke('storage:set-credentials', credentials);
     },
-    async getApiKey() {
-        const result = await ipcRenderer.invoke('storage:get-api-key');
+    async getOpenRouterApiKey() {
+        const result = await ipcRenderer.invoke('storage:get-openrouter-api-key');
         return result.success ? result.data : '';
     },
-    async setApiKey(apiKey) {
-        return ipcRenderer.invoke('storage:set-api-key', apiKey);
-    },
-    async getGroqApiKey() {
-        const result = await ipcRenderer.invoke('storage:get-groq-api-key');
-        return result.success ? result.data : '';
-    },
-    async setGroqApiKey(groqApiKey) {
-        return ipcRenderer.invoke('storage:set-groq-api-key', groqApiKey);
+    async setOpenRouterApiKey(apiKey) {
+        return ipcRenderer.invoke('storage:set-openrouter-api-key', apiKey);
     },
 
     // Preferences
@@ -101,12 +94,6 @@ const storage = {
     async clearAll() {
         return ipcRenderer.invoke('storage:clear-all');
     },
-
-    // Limits
-    async getTodayLimits() {
-        const result = await ipcRenderer.invoke('storage:get-today-limits');
-        return result.success ? result.data : { flash: { count: 0 }, flashLite: { count: 0 } };
-    },
 };
 
 // Cache for preferences to avoid async calls in hot paths
@@ -140,18 +127,23 @@ function arrayBufferToBase64(buffer) {
     return btoa(binary);
 }
 
-async function initializeGemini(profile = 'interview', language = 'en-US') {
-    const apiKey = await storage.getApiKey();
-    if (apiKey) {
-        const prefs = await storage.getPreferences();
-        const success = await ipcRenderer.invoke('initialize-gemini', apiKey, prefs.customPrompt || '', profile, language);
-        if (success) {
-            cheatingDaddy.setStatus('Live');
-        } else {
-            cheatingDaddy.setStatus('error');
-        }
-    }
+async function initializeOpenRouter(profile = 'interview', language = 'en-US') {
+    const prefs = await storage.getPreferences();
+    const result = await ipcRenderer.invoke('initialize-openrouter', profile, prefs.customPrompt || '', language);
+    senpai.setStatus(result.success ? 'Listening...' : 'Error: ' + result.error);
+    return result;
 }
+
+// OpenRouter helpers (requests run in the main process)
+const openrouter = {
+    async listModels(outputModality) {
+        const result = await ipcRenderer.invoke('openrouter:list-models', outputModality);
+        return result.success ? result.data : [];
+    },
+    async getKeyInfo() {
+        return ipcRenderer.invoke('openrouter:key-info');
+    },
+};
 
 async function initializeLocal(profile = 'interview') {
     const prefs = await storage.getPreferences();
@@ -161,10 +153,10 @@ async function initializeLocal(profile = 'interview') {
 
     const success = await ipcRenderer.invoke('initialize-local', localLlmModel, whisperModel, profile, customPrompt);
     if (success) {
-        cheatingDaddy.setStatus('Local AI Live');
+        senpai.setStatus('Local AI Live');
         return true;
     } else {
-        cheatingDaddy.setStatus('error');
+        senpai.setStatus('error');
         return false;
     }
 }
@@ -173,29 +165,10 @@ async function cancelLocalInitialization() {
     return ipcRenderer.invoke('cancel-local-initialization');
 }
 
-async function initializeCloud(profile = 'interview') {
-    const creds = await storage.getCredentials();
-    const token = creds.cloudToken;
-    if (!token || !token.trim()) {
-        cheatingDaddy.setStatus('error');
-        return false;
-    }
-
-    const prefs = await storage.getPreferences();
-    const success = await ipcRenderer.invoke('initialize-cloud', token, profile, prefs.customPrompt || '');
-    if (success) {
-        cheatingDaddy.setStatus('Live');
-        return true;
-    } else {
-        cheatingDaddy.setStatus('error');
-        return false;
-    }
-}
-
 // Listen for status updates
 ipcRenderer.on('update-status', (event, status) => {
     console.log('Status update:', status);
-    cheatingDaddy.setStatus(status);
+    senpai.setStatus(status);
 });
 
 async function startCapture(screenshotIntervalSeconds = 5, imageQuality = 'medium') {
@@ -364,7 +337,7 @@ async function startCapture(screenshotIntervalSeconds = 5, imageQuality = 'mediu
         console.log('Manual mode enabled - screenshots will be captured on demand only');
     } catch (err) {
         console.error('Error starting capture:', err);
-        cheatingDaddy.setStatus('error');
+        senpai.setStatus('error');
     }
 }
 
@@ -651,7 +624,7 @@ async function captureManualScreenshot(imageQuality = null) {
                     // Response already displayed via streaming events (new-response/update-response)
                 } else {
                     console.error('Failed to get image response:', result.error);
-                    cheatingDaddy.addNewResponse(`Error: ${result.error}`);
+                    senpai.addNewResponse(`Error: ${result.error}`);
                 }
             };
             reader.readAsDataURL(blob);
@@ -708,7 +681,7 @@ function stopCapture() {
     offscreenContext = null;
 }
 
-// Send text message to Gemini
+// Send typed text to the active session
 async function sendTextMessage(text) {
     if (!text || text.trim().length === 0) {
         console.warn('Cannot send empty text message');
@@ -774,11 +747,11 @@ ipcRenderer.on('clear-sensitive-data', async () => {
 
 // Handle shortcuts based on current view
 function handleShortcut(shortcutKey) {
-    const currentView = cheatingDaddy.getCurrentView();
+    const currentView = senpai.getCurrentView();
 
     if (shortcutKey === 'ctrl+enter' || shortcutKey === 'cmd+enter') {
         if (currentView === 'main') {
-            cheatingDaddy.element().handleStart();
+            senpai.element().handleStart();
         } else {
             captureManualScreenshot();
         }
@@ -786,7 +759,7 @@ function handleShortcut(shortcutKey) {
 }
 
 // Create reference to the main app element
-const cheatingDaddyApp = document.querySelector('cheating-daddy-app');
+const senpaiApp = document.querySelector('senpai-app');
 
 // ============ THEME SYSTEM ============
 const theme = {
@@ -1066,28 +1039,28 @@ const theme = {
     },
 };
 
-// Consolidated cheatingDaddy object - all functions in one place
-const cheatingDaddy = {
+// Consolidated senpai object - all functions in one place
+const senpai = {
     // App version
     getVersion: async () => ipcRenderer.invoke('get-app-version'),
 
     // Element access
-    element: () => cheatingDaddyApp,
-    e: () => cheatingDaddyApp,
+    element: () => senpaiApp,
+    e: () => senpaiApp,
 
     // App state functions - access properties directly from the app element
-    getCurrentView: () => cheatingDaddyApp.currentView,
-    getLayoutMode: () => cheatingDaddyApp.layoutMode,
+    getCurrentView: () => senpaiApp.currentView,
+    getLayoutMode: () => senpaiApp.layoutMode,
 
     // Status and response functions
-    setStatus: text => cheatingDaddyApp.setStatus(text),
-    addNewResponse: response => cheatingDaddyApp.addNewResponse(response),
-    updateCurrentResponse: response => cheatingDaddyApp.updateCurrentResponse(response),
+    setStatus: text => senpaiApp.setStatus(text),
+    addNewResponse: response => senpaiApp.addNewResponse(response),
+    updateCurrentResponse: response => senpaiApp.updateCurrentResponse(response),
 
     // Core functionality
-    initializeGemini,
-    initializeCloud,
+    initializeOpenRouter,
     initializeLocal,
+    openrouter,
     cancelLocalInitialization,
     startCapture,
     stopCapture,
@@ -1109,7 +1082,7 @@ const cheatingDaddy = {
 };
 
 // Make it globally available
-window.cheatingDaddy = cheatingDaddy;
+window.senpai = senpai;
 
 // Load theme after DOM is ready
 if (document.readyState === 'loading') {
