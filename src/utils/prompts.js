@@ -201,7 +201,19 @@ Provide direct exam answers in **markdown format**. Include the question text, t
     },
 };
 
-function buildSystemPrompt(promptParts, customPrompt = '', webSearchEnabled = true) {
+const technicalQuestions = `**TECHNICAL QUESTIONS (coding, DSA, system design):**
+These override the length limits above. Give complete, correct answers the user can explain out loud.
+- **Coding / DSA**: restate the problem in one line, then the approach in 2-4 bullets (mention brute force only if it helps), time and space complexity, complete runnable code in one fenced block, and key edge cases. Use the language the interviewer asked for; otherwise the user's main language from their resume or repository; otherwise Python.
+- **System design**: one line on scope, then compact bullets for requirements (functional and non-functional, with rough numbers), API, data model, high-level architecture and data flow, scaling (caching, sharding, replication, queues), bottlenecks and trade-offs. End with the deep-dive the interviewer is likely to ask next.
+- **Debugging / code review**: name the exact bug, why it happens, and the fix.
+- **Concepts** (OS, networking, databases, concurrency, language internals): crisp definition, how it works, one concrete example.`;
+
+const knowledgeRules = `**USING THE KNOWLEDGE BASE:**
+- Questions about the user's experience, projects, resume or portfolio: answer in first person ("I built...") using only facts from the knowledge base. Never invent employers, dates, metrics or projects. If something is not covered, answer generally without making up specifics.
+- Questions about the repository or the company assignment: refer to specific files, functions and design decisions in the provided code. Explain why things were built that way, known limitations, and how to extend, test or scale them. Follow the user's repo instructions.
+- When asked to change or extend the assignment, write code that fits the repository's language, structure and style, and say which files to touch.`;
+
+function buildSystemPrompt(promptParts, customPrompt = '', webSearchEnabled = true, knowledge = '') {
     const sections = [promptParts.intro, '\n\n', promptParts.formatRequirements];
 
     // Only add search usage section if web search is enabled
@@ -209,14 +221,29 @@ function buildSystemPrompt(promptParts, customPrompt = '', webSearchEnabled = tr
         sections.push('\n\n', promptParts.searchUsage);
     }
 
-    sections.push('\n\n', promptParts.content, '\n\nUser-provided context\n-----\n', customPrompt, '\n-----\n\n', promptParts.outputInstructions);
+    sections.push('\n\n', promptParts.content, '\n\n', technicalQuestions);
+
+    if (knowledge) {
+        sections.push('\n\n', knowledgeRules);
+    }
+
+    sections.push('\n\nUser-provided context\n-----\n', customPrompt, '\n-----\n\n');
+
+    if (knowledge) {
+        sections.push(knowledge, '\n\n');
+    }
+
+    sections.push(
+        promptParts.outputInstructions,
+        '\nTechnical questions follow the TECHNICAL QUESTIONS rules above, even if that makes the answer longer.'
+    );
 
     return sections.join('');
 }
 
-function getSystemPrompt(profile, customPrompt = '', webSearchEnabled = true) {
+function getSystemPrompt(profile, customPrompt = '', webSearchEnabled = true, knowledge = '') {
     const promptParts = profilePrompts[profile] || profilePrompts.interview;
-    return buildSystemPrompt(promptParts, customPrompt, webSearchEnabled);
+    return buildSystemPrompt(promptParts, customPrompt, webSearchEnabled, knowledge);
 }
 
 module.exports = {

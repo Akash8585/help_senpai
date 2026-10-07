@@ -13,6 +13,8 @@ speech-to-text model it hosts. A fully offline **Local AI** mode (llama.cpp + wh
 
 - **Any model via OpenRouter**: pick the answer model, screenshot (vision) model and speech-to-text model from the live OpenRouter catalog
 - **Live transcription**: speech is detected locally, then each utterance is transcribed by an OpenRouter STT model (Whisper by default)
+- **Your context, built in**: add your resume, portfolio, GitHub repos (with instructions for what to do with them) and the company assignment on the Context page; answers are grounded in them
+- **Technical answers**: coding and DSA (approach, complexity, full code), system design (requirements → architecture → scaling → trade-offs), debugging and concepts
 - **Screen help**: `Ctrl/Cmd + Enter` sends a screenshot to a vision model
 - **Speaker-aware**: system audio is treated as the other party, your microphone as you (in "both" mode it's context only)
 - **Optional web search**: OpenRouter's `web` plugin for questions about recent events
@@ -36,6 +38,26 @@ screenshot (Ctrl+Enter) ──────────────────�
 
 If the other person keeps talking while an answer is streaming, Senpai cancels that answer and re-asks with the
 full question.
+
+## Context page
+
+| Source             | How to add                                      | What is read                                                               |
+| ------------------ | ----------------------------------------------- | -------------------------------------------------------------------------- |
+| Resume             | Upload PDF / DOCX / TXT, or paste text          | Full text                                                                  |
+| Portfolio          | Link                                            | Page rendered in a hidden browser (JavaScript sites work), plus its links  |
+| Company assignment | Link, upload, or paste                          | Web page, Google Doc shared by link, PDF, Notion page, GitHub file or repo |
+| GitHub repos       | `github.com/owner/repo` (or `/tree/branch/dir`) | File tree, README, manifests, and source files ranked by relevance         |
+
+- "What should Senpai do with these repos?" tells the model how to use the code (e.g. "they'll ask me to extend
+  the take-home with pagination").
+- Large repos are fitted into a ~150k-character budget: every relevant file gets a fair share, and long files are
+  cut with an outline of their remaining functions/classes. Lockfiles, build output and `node_modules` are skipped.
+- Private repos or heavy use need a GitHub token (read-only "Contents" access is enough).
+- LinkedIn requires a login, so export your profile as PDF and upload it as your resume.
+- The page shows how many tokens of context are sent with every answer. The context is part of the system prompt,
+  which Gemini caches automatically and other providers cache via a `cache_control` marker, so repeat answers are
+  billed at the cheaper cached rate where supported.
+- Changes apply to the next session. Local AI mode only gets the first ~12k characters (8K-token context window).
 
 ## Setup
 
@@ -80,7 +102,9 @@ Choose speaker only, microphone only, or both under Settings → Audio Input.
 
 - Settings, your API key and session history are stored locally in `senpai-config` (`%APPDATA%` on Windows,
   `~/Library/Application Support` on macOS, `~/.config` on Linux).
-- In OpenRouter mode, detected speech segments, transcripts and screenshots are sent to OpenRouter and the model
+- Context page items are stored as extracted text in `senpai-config/knowledge.json`; a GitHub token, if added, is
+  stored in `credentials.json`.
+- In OpenRouter mode, detected speech segments, transcripts, screenshots and your Context page material are sent to OpenRouter and the model
   provider you selected. Local AI mode keeps everything on your machine.
 
 ## Development
@@ -97,6 +121,7 @@ Key files:
 - `src/utils/openrouter.js` — OpenRouter client (streaming chat, STT, model list, key info)
 - `src/utils/speechSegmenter.js` — voice activity detection, resampling, WAV encoding
 - `src/utils/session.js` — session orchestration and IPC handlers
+- `src/utils/knowledge.js` — Context page backend (resume/portfolio/assignment/repo fetching, prompt budget)
 - `src/utils/localai.js` — local llama.cpp / whisper.cpp mode
 - `src/components/views/MainView.js` — setup screen
 

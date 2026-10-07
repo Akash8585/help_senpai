@@ -21,6 +21,9 @@ npm start
   (`/audio/transcriptions`), `listModels`, `getKeyInfo`.
 - `src/utils/speechSegmenter.js` — energy VAD that turns 24 kHz PCM16 chunks into 16 kHz utterances. Shared by
   both providers.
+- `src/utils/knowledge.js` — Context page backend: stores resume/portfolio/assignment/repo text in
+  `knowledge.json`, fetches GitHub repos (tree + raw files), renders web pages in a hidden window, extracts
+  PDF/DOCX, and builds the knowledge section of the system prompt within a character budget.
 - `src/utils/localai.js`, `src/utils/native-ai-runtime.js` — offline llama.cpp + whisper.cpp mode.
 - `src/utils/renderer.js` — renderer-side capture and the `window.senpai` API used by components.
 - `src/storage.js` — JSON files in the `senpai-config` directory (config, credentials, preferences, history).

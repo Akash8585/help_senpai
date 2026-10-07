@@ -134,6 +134,24 @@ async function initializeOpenRouter(profile = 'interview', language = 'en-US') {
     return result;
 }
 
+// Knowledge base (resume, portfolio, assignment, repos). Calls resolve to { success, data | error }.
+const knowledge = {
+    get: () => ipcRenderer.invoke('knowledge:get'),
+    addUrl: (kind, url) => ipcRenderer.invoke('knowledge:add-url', kind, url),
+    addFile: (kind, name, base64Data) => ipcRenderer.invoke('knowledge:add-file', kind, name, base64Data),
+    addText: (kind, text, title) => ipcRenderer.invoke('knowledge:add-text', kind, text, title),
+    refresh: id => ipcRenderer.invoke('knowledge:refresh', id),
+    remove: id => ipcRenderer.invoke('knowledge:remove', id),
+    getContent: id => ipcRenderer.invoke('knowledge:get-content', id),
+    setRepoInstructions: text => ipcRenderer.invoke('knowledge:set-repo-instructions', text),
+    setGithubToken: token => ipcRenderer.invoke('knowledge:set-github-token', token),
+    onUpdate: callback => {
+        const listener = (_, summary) => callback(summary);
+        ipcRenderer.on('knowledge-updated', listener);
+        return () => ipcRenderer.removeListener('knowledge-updated', listener);
+    },
+};
+
 // OpenRouter helpers (requests run in the main process)
 const openrouter = {
     async listModels(outputModality) {
@@ -1061,6 +1079,7 @@ const senpai = {
     initializeOpenRouter,
     initializeLocal,
     openrouter,
+    knowledge,
     cancelLocalInitialization,
     startCapture,
     stopCapture,

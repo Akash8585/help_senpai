@@ -4,13 +4,15 @@ if (require('electron-squirrel-startup')) {
 
 const { app, BrowserWindow, shell, ipcMain } = require('electron');
 const { createWindow, updateGlobalShortcuts } = require('./utils/window');
-const { setupSessionIpcHandlers, stopMacOSAudioCapture, closeActiveSession, sendToRenderer } = require('./utils/session');
+const { setupSessionIpcHandlers, stopMacOSAudioCapture, closeActiveSession, sendToRenderer, setMainWindow } = require('./utils/session');
+const { setupKnowledgeIpcHandlers, resetKnowledgeCache } = require('./utils/knowledge');
 const storage = require('./storage');
 
 let mainWindow = null;
 
 function createMainWindow() {
     mainWindow = createWindow(sendToRenderer, closeActiveSession);
+    setMainWindow(mainWindow);
     return mainWindow;
 }
 
@@ -26,6 +28,7 @@ app.whenReady().then(async () => {
 
     createMainWindow();
     setupSessionIpcHandlers();
+    setupKnowledgeIpcHandlers(sendToRenderer);
     setupStorageIpcHandlers();
     setupGeneralIpcHandlers();
 });
@@ -221,6 +224,7 @@ function setupStorageIpcHandlers() {
     ipcMain.handle('storage:clear-all', async () => {
         try {
             storage.clearAllData();
+            resetKnowledgeCache();
             return { success: true };
         } catch (error) {
             console.error('Error clearing all data:', error);

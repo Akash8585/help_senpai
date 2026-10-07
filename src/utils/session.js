@@ -12,6 +12,7 @@ const { getOpenRouterApiKey, getConfig, getPreferences } = require('../storage')
 const { streamChat, transcribe, listModels, getKeyInfo } = require('./openrouter');
 const { createSpeechSegmenter, createWavBuffer } = require('./speechSegmenter');
 const { startTransportLog, logTransportEvent, closeTransportLog } = require('./transportLogger');
+const { buildKnowledgeSection } = require('./knowledge');
 
 // Lazy-loaded to avoid circular dependency (localai.js imports from session.js)
 let _localai = null;
@@ -37,6 +38,8 @@ let systemAudioProc = null;
 
 const MAX_HISTORY_CHARS = 48000;
 const MAX_HISTORY_MESSAGES = 40;
+// Roughly 1024 tokens, the smallest prompt providers will cache.
+const CACHE_MIN_CHARS = 4500;
 
 const TRANSCRIPT_FORMAT_NOTE = `
 
@@ -54,11 +57,19 @@ function toIso639_1(locale) {
     return LANGUAGE_OVERRIDES[base] || base;
 }
 
+let mainWindow = null;
+
+function setMainWindow(win) {
+    mainWindow = win;
+}
+
 function sendToRenderer(channel, data) {
-    const windows = BrowserWindow.getAllWindows();
-    if (windows.length > 0) {
-        windows[0].webContents.send(channel, data);
-    }
+    // Target the app window explicitly: hidden windows (used to read web pages) also exist.
+    const target =
+        mainWindow && !mainWindow.isDestroyed()
+            ? mainWindow
+            : BrowserWindow.getAllWindows().find(win => !win.isSenpaiFetchWindow && !win.isDestroyed());
+    target?.webContents.send(channel, data);
 }
 
 // ============ CONVERSATION HISTORY ============
@@ -183,7 +194,7 @@ function createOpenRouterSession({ apiKey, config, preferences, profile, customP
         language: toIso639_1(language),
         // In mic-only mode the mic is the only input, so it carries the other party's voice.
         micTriggersAnswers: audioMode === 'mic_only',
-        systemPrompt: getSystemPrompt(profile, customPrompt, webSearch) + TRANSCRIPT_FORMAT_NOTE,
+        systemPrompt: getSystemPrompt(profile, customPrompt, webSearch, buildKnowledgeSection()) + TRANSCRIPT_FORMAT_NOTE,
         chatHistory: [],
         cost: 0,
         active: true,
@@ -265,7 +276,13 @@ async function generateAnswer(session, { model = session.chatModel, userContentO
     const lastUser = history[history.length - 1];
     const promptText = lastUser?.role === 'user' ? lastUser.content : '';
 
-    const messages = [{ role: 'system', content: session.systemPrompt }, ...history];
+    // The system prompt (with the knowledge base) is identical on every turn; mark it cacheable so
+    // providers that need explicit breakpoints (Anthropic, Qwen) bill repeats at the cached rate.
+    const systemContent =
+        session.systemPrompt.length > CACHE_MIN_CHARS
+            ? [{ type: 'text', text: session.systemPrompt, cache_control: { type: 'ephemeral' } }]
+            : session.systemPrompt;
+    const messages = [{ role: 'system', content: systemContent }, ...history];
     if (userContentOverride && lastUser?.role === 'user') {
         messages[messages.length - 1] = { role: 'user', content: userContentOverride };
     }
@@ -662,6 +679,7 @@ function setupSessionIpcHandlers() {
 }
 
 module.exports = {
+    setMainWindow,
     sendToRenderer,
     initializeNewSession,
     saveConversationTurn,

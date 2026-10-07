@@ -6,6 +6,7 @@ import { HistoryView } from '../views/HistoryView.js';
 import { AssistantView } from '../views/AssistantView.js';
 import { OnboardingView } from '../views/OnboardingView.js';
 import { AICustomizeView } from '../views/AICustomizeView.js';
+import { ContextView } from '../views/ContextView.js';
 
 export class SenpaiApp extends LitElement {
     static styles = css`
@@ -662,6 +663,9 @@ export class SenpaiApp extends LitElement {
                     ></main-view>
                 `;
 
+            case 'context':
+                return html`<context-view></context-view>`;
+
             case 'ai-customize':
                 return html`
                     <ai-customize-view
@@ -740,6 +744,16 @@ export class SenpaiApp extends LitElement {
                         stroke-width="2"
                         d="M13 3v7h6l-8 11v-7H5z"
                     />
+                </svg>`,
+            },
+            {
+                id: 'context',
+                label: 'Context',
+                icon: html`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                        <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                        <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2M9 9h1m-1 4h6m-6 4h6" />
+                    </g>
                 </svg>`,
             },
             {

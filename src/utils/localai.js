@@ -3,6 +3,7 @@ const path = require('path');
 const { getSystemPrompt } = require('./prompts');
 const { sendToRenderer, initializeNewSession, saveConversationTurn } = require('./session');
 const { createSpeechSegmenter, createWavBuffer } = require('./speechSegmenter');
+const { buildKnowledgeSection } = require('./knowledge');
 const {
     ensureNativeBinary,
     ensureLlamaModel,
@@ -13,6 +14,9 @@ const {
     stopNativeServer,
     waitForServer,
 } = require('./native-ai-runtime');
+
+// The local model runs with an 8K-token context, so only a slice of the knowledge base fits.
+const LOCAL_KNOWLEDGE_CHARS = 12000;
 
 let llamaProcess = null;
 let llamaBaseUrl = null;
@@ -333,7 +337,7 @@ async function initializeLocalSession(model, whisperModel, profile, customPrompt
         closeLocalSession();
         initializationController = new AbortController();
         llamaCacheSnapshot = getDirectoryEntries(path.join(getModelsDirectory(), 'llama'));
-        currentSystemPrompt = getSystemPrompt(profile, customPrompt, false);
+        currentSystemPrompt = getSystemPrompt(profile, customPrompt, false, buildKnowledgeSection(LOCAL_KNOWLEDGE_CHARS));
         llamaModel = model;
 
         const nativeFiles = await prepareNativeFiles(model, whisperModel, initializationController.signal);

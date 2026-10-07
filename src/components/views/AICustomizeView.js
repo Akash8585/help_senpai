@@ -109,15 +109,16 @@ export class AICustomizeView extends LitElement {
                                 <label class="form-label">Custom Instructions</label>
                                 <textarea
                                     class="control"
-                                    placeholder="Resume details, role requirements, constraints..."
+                                    placeholder="Role, company, interview format, anything else the AI should know..."
                                     .value=${this._context}
                                     @input=${e => this._saveContext(e.target.value)}
                                 ></textarea>
-                                <div class="form-help">Sent as context at session start. Keep it short.</div>
+                                <div class="form-help">
+                                    Sent as context at session start. Add your resume, portfolio, repos and assignment on the Context page.
+                                </div>
                             </div>
                         </div>
                     </section>
-
                 </div>
             </div>
         `;
