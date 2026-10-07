@@ -1,3 +1,5 @@
+<p align="center"><img src="src/assets/logo.svg" width="112" alt="Senpai logo" /></p>
+
 # Senpai
 
 A real-time AI assistant for calls, interviews, presentations and meetings. Senpai listens to the conversation,

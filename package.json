@@ -1,7 +1,7 @@
 {
     "name": "senpai",
     "productName": "Senpai",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Real-time AI assistant for calls, interviews and meetings, powered by any model on OpenRouter",
     "main": "src/index.js",
     "scripts": {
@@ -39,5 +39,10 @@
         "@electron/fuses": "^1.8.0",
         "@reforged/maker-appimage": "^5.0.0",
         "electron": "^30.0.5"
-    }
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Akash8585/help_senpai.git"
+    },
+    "homepage": "https://github.com/Akash8585/help_senpai"
 }

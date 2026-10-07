@@ -121,9 +121,18 @@ export class SenpaiApp extends LitElement {
         }
 
         .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
             padding: var(--space-sm) var(--space-lg);
             padding-top: var(--space-md);
             margin-bottom: var(--space-lg);
+        }
+
+        .sidebar-brand img {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
         }
 
         .sidebar-brand h1 {
@@ -795,6 +804,7 @@ export class SenpaiApp extends LitElement {
         return html`
             <div class="sidebar ${this._isLiveMode() ? 'hidden' : ''}">
                 <div class="sidebar-brand">
+                    <img src="assets/logo-small.svg" alt="" />
                     <h1>Senpai</h1>
                 </div>
                 <nav class="sidebar-nav">

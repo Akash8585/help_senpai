@@ -21,6 +21,7 @@ function createWindow(sendToRenderer, closeSession) {
         transparent: true,
         hasShadow: false,
         alwaysOnTop: process.platform === 'win32',
+        icon: path.join(__dirname, '../assets', process.platform === 'win32' ? 'logo.ico' : 'logo.png'),
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false, // TODO: change to true
