@@ -152,6 +152,30 @@ const knowledge = {
     },
 };
 
+// Notes (chunks shown on the Notes page and the in-session side panel). Calls resolve to { success, data | error }.
+const notes = {
+    list: () => ipcRenderer.invoke('notes:list'),
+    save: note => ipcRenderer.invoke('notes:save', note),
+    addMany: list => ipcRenderer.invoke('notes:add-many', list),
+    remove: id => ipcRenderer.invoke('notes:delete', id),
+    onUpdate: callback => {
+        const listener = (_, list) => callback(list);
+        ipcRenderer.on('notes-updated', listener);
+        return () => ipcRenderer.removeListener('notes-updated', listener);
+    },
+    copy: text => {
+        try {
+            require('electron').clipboard.writeText(text);
+            return true;
+        } catch {
+            return navigator.clipboard.writeText(text).then(
+                () => true,
+                () => false
+            );
+        }
+    },
+};
+
 // OpenRouter helpers (requests run in the main process)
 const openrouter = {
     async listModels(outputModality) {
@@ -1080,6 +1104,7 @@ const senpai = {
     initializeLocal,
     openrouter,
     knowledge,
+    notes,
     cancelLocalInitialization,
     startCapture,
     stopCapture,

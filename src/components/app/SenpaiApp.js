@@ -7,6 +7,8 @@ import { AssistantView } from '../views/AssistantView.js';
 import { OnboardingView } from '../views/OnboardingView.js';
 import { AICustomizeView } from '../views/AICustomizeView.js';
 import { ContextView } from '../views/ContextView.js';
+import { NotesView } from '../views/NotesView.js';
+import '../views/NotesPanel.js';
 
 export class SenpaiApp extends LitElement {
     static styles = css`
@@ -192,6 +194,17 @@ export class SenpaiApp extends LitElement {
             -webkit-app-region: no-drag;
         }
 
+        .shortcut-warning {
+            margin: 0 var(--space-sm) var(--space-sm);
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.08);
+            color: var(--danger, #ef4444);
+            font-size: var(--font-size-xs);
+            line-height: 1.4;
+        }
+
         .version-text {
             font-size: var(--font-size-xs);
             color: var(--text-muted);
@@ -292,6 +305,26 @@ export class SenpaiApp extends LitElement {
             overflow-x: hidden;
         }
 
+        .live-body {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+        }
+
+        .live-body assistant-view {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .live-body notes-panel {
+            width: clamp(240px, 32%, 380px);
+            flex-shrink: 0;
+        }
+
+        .live-bar-text.clickable.active {
+            color: var(--text-primary);
+        }
+
         .content-inner.live {
             overflow: hidden;
             display: flex;
@@ -344,6 +377,8 @@ export class SenpaiApp extends LitElement {
         shouldAnimateResponse: { type: Boolean },
         _storageLoaded: { state: true },
         _sessionCost: { state: true },
+        _shortcutConflicts: { state: true },
+        _notesPanelOpen: { state: true },
         _whisperDownloading: { state: true },
         _localAiDownloadProgress: { state: true },
     };
@@ -370,6 +405,8 @@ export class SenpaiApp extends LitElement {
         this._storageLoaded = false;
         this._timerInterval = null;
         this._sessionCost = 0;
+        this._shortcutConflicts = [];
+        this._notesPanelOpen = false;
         this._whisperDownloading = false;
         this._localAiDownloadProgress = { active: false, label: '', percentage: null };
         this._localVersion = '';
@@ -397,6 +434,7 @@ export class SenpaiApp extends LitElement {
             this.selectedScreenshotInterval = prefs.selectedScreenshotInterval || '5';
             this.selectedImageQuality = prefs.selectedImageQuality || 'medium';
             this.layoutMode = config.layout || 'normal';
+            this._notesPanelOpen = prefs.notesPanelOpen === true;
 
             this._storageLoaded = true;
             this.requestUpdate();
@@ -417,6 +455,9 @@ export class SenpaiApp extends LitElement {
             ipcRenderer.on('update-status', (_, status) => this.setStatus(status));
             ipcRenderer.on('click-through-toggled', (_, isEnabled) => {
                 this._isClickThrough = isEnabled;
+            });
+            ipcRenderer.on('shortcut-conflicts', (_, conflicts) => {
+                this._shortcutConflicts = conflicts || [];
             });
             ipcRenderer.on('usage-update', (_, usage) => {
                 this._sessionCost = usage.cost || 0;
@@ -440,6 +481,7 @@ export class SenpaiApp extends LitElement {
             ipcRenderer.removeAllListeners('update-status');
             ipcRenderer.removeAllListeners('click-through-toggled');
             ipcRenderer.removeAllListeners('usage-update');
+            ipcRenderer.removeAllListeners('shortcut-conflicts');
             ipcRenderer.removeAllListeners('whisper-downloading');
             ipcRenderer.removeAllListeners('local-ai-download-progress');
         }
@@ -530,6 +572,11 @@ export class SenpaiApp extends LitElement {
             const { ipcRenderer } = window.require('electron');
             await ipcRenderer.invoke('window-minimize');
         }
+    }
+
+    toggleNotesPanel() {
+        this._notesPanelOpen = !this._notesPanelOpen;
+        senpai.storage.updatePreference('notesPanelOpen', this._notesPanelOpen);
     }
 
     async handleHideToggle() {
@@ -672,6 +719,9 @@ export class SenpaiApp extends LitElement {
                     ></main-view>
                 `;
 
+            case 'notes':
+                return html`<notes-view></notes-view>`;
+
             case 'context':
                 return html`<context-view></context-view>`;
 
@@ -707,19 +757,26 @@ export class SenpaiApp extends LitElement {
 
             case 'assistant':
                 return html`
-                    <assistant-view
-                        .responses=${this.responses}
-                        .currentResponseIndex=${this.currentResponseIndex}
-                        .selectedProfile=${this.selectedProfile}
-                        .onSendText=${msg => this.handleSendText(msg)}
-                        .shouldAnimateResponse=${this.shouldAnimateResponse}
-                        @response-index-changed=${this.handleResponseIndexChanged}
-                        @response-animation-complete=${() => {
-                            this.shouldAnimateResponse = false;
-                            this._currentResponseIsComplete = true;
-                            this.requestUpdate();
-                        }}
-                    ></assistant-view>
+                    <div class="live-body">
+                        <assistant-view
+                            .responses=${this.responses}
+                            .currentResponseIndex=${this.currentResponseIndex}
+                            .selectedProfile=${this.selectedProfile}
+                            .onSendText=${msg => this.handleSendText(msg)}
+                            .shouldAnimateResponse=${this.shouldAnimateResponse}
+                            @response-index-changed=${this.handleResponseIndexChanged}
+                            @response-animation-complete=${() => {
+                                this.shouldAnimateResponse = false;
+                                this._currentResponseIsComplete = true;
+                                this.requestUpdate();
+                            }}
+                        ></assistant-view>
+                        ${
+                            this._notesPanelOpen
+                                ? html`<notes-panel compact .currentAnswer=${this.responses[this.currentResponseIndex] || ''}></notes-panel>`
+                                : ''
+                        }
+                    </div>
                 `;
 
             default:
@@ -753,6 +810,16 @@ export class SenpaiApp extends LitElement {
                         stroke-width="2"
                         d="M13 3v7h6l-8 11v-7H5z"
                     />
+                </svg>`,
+            },
+            {
+                id: 'notes',
+                label: 'Notes',
+                icon: html`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                        <path d="M13 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7" />
+                        <path d="M13 20v-5a2 2 0 0 1 2-2h5M8 8h8M8 12h4" />
+                    </g>
                 </svg>`,
             },
             {
@@ -821,6 +888,20 @@ export class SenpaiApp extends LitElement {
                     )}
                 </nav>
                 <div class="sidebar-footer">
+                    ${
+                        this._shortcutConflicts.length
+                            ? html`<div
+                                  class="shortcut-warning"
+                                  title="Another app owns these shortcuts. Change them in Settings → Keyboard Shortcuts."
+                              >
+                                  ${
+                                      this._shortcutConflicts.length > 3
+                                          ? `${this._shortcutConflicts.length} shortcuts are taken, usually by another running copy of Senpai. Close it and restart this one.`
+                                          : `Shortcut in use by another app: ${this._shortcutConflicts.join(', ')}. Change it in Settings.`
+                                  }
+                              </div>`
+                            : ''
+                    }
                     <div class="version-text">v${this._localVersion}</div>
                 </div>
             </div>
@@ -858,6 +939,12 @@ export class SenpaiApp extends LitElement {
                     ${this._sessionCost > 0 ? html`<span class="live-bar-text" title="OpenRouter cost this session">${this._sessionCost.toFixed(4)}</span>` : ''}
                     <span class="live-bar-text">${this.getElapsedTime()}</span>
                     ${this._isClickThrough ? html`<span class="live-bar-text">[click through]</span>` : ''}
+                    <span
+                        class="live-bar-text clickable ${this._notesPanelOpen ? 'active' : ''}"
+                        @click=${() => this.toggleNotesPanel()}
+                        title="Show or hide your notes"
+                        >[notes]</span
+                    >
                     <span class="live-bar-text clickable" @click=${() => this.handleHideToggle()}>[hide]</span>
                 </div>
             </div>

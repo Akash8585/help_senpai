@@ -15,6 +15,7 @@ speech-to-text model it hosts. A fully offline **Local AI** mode (llama.cpp + wh
 
 - **Any model via OpenRouter**: pick the answer model, screenshot (vision) model and speech-to-text model from the live OpenRouter catalog
 - **Live transcription**: speech is detected locally, then each utterance is transcribed by an OpenRouter STT model (Whisper by default)
+- **Notes side panel**: keep prep as chunks (STAR stories, talking points, formulas, questions to ask), paste a long doc to split it into chunks, and open them next to the answers during a session with `[notes]`. Save any AI answer as a note in one click; mark chunks "Share with AI" to use them in answers
 - **Your context, built in**: add your resume, portfolio, GitHub repos (with instructions for what to do with them) and the company assignment on the Context page; answers are grounded in them
 - **Technical answers**: coding and DSA (approach, complexity, full code), system design (requirements → architecture → scaling → trade-offs), debugging and concepts
 - **Screen help**: `Ctrl/Cmd + Enter` sends a screenshot to a vision model
@@ -90,7 +91,7 @@ input. "Disable thinking" sends `reasoning.effort = "none"` for faster answers f
 | Previous / next answer          | `Ctrl/Cmd + [` / `]`    |
 | Emergency erase                 | `Ctrl/Cmd + Shift + E`  |
 
-All shortcuts can be changed in Settings.
+All shortcuts can be changed in Settings. Only one copy of Senpai runs at a time (launching it again focuses the open window); if another app already uses a shortcut, the sidebar shows a warning.
 
 ## Audio capture
 
@@ -123,6 +124,7 @@ Key files:
 - `src/utils/openrouter.js` — OpenRouter client (streaming chat, STT, model list, key info)
 - `src/utils/speechSegmenter.js` — voice activity detection, resampling, WAV encoding
 - `src/utils/session.js` — session orchestration and IPC handlers
+- `src/utils/notes.js` / `src/components/views/NotesPanel.js` — note chunks, Notes page and in-session side panel
 - `src/utils/knowledge.js` — Context page backend (resume/portfolio/assignment/repo fetching, prompt budget)
 - `src/utils/localai.js` — local llama.cpp / whisper.cpp mode
 - `src/components/views/MainView.js` — setup screen

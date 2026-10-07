@@ -6,9 +6,23 @@ const { app, BrowserWindow, shell, ipcMain } = require('electron');
 const { createWindow, updateGlobalShortcuts } = require('./utils/window');
 const { setupSessionIpcHandlers, stopMacOSAudioCapture, closeActiveSession, sendToRenderer, setMainWindow } = require('./utils/session');
 const { setupKnowledgeIpcHandlers, resetKnowledgeCache } = require('./utils/knowledge');
+const { setupNotesIpcHandlers, resetNotesCache } = require('./utils/notes');
 const storage = require('./storage');
 
+// Only one Senpai may run: global shortcuts belong to whichever copy registered them first, and the
+// window is hidden from the taskbar, so a second copy would silently steal or lose the hotkeys.
+if (!app.requestSingleInstanceLock()) {
+    app.exit(0);
+}
+
 let mainWindow = null;
+
+app.on('second-instance', () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
+});
 
 function createMainWindow() {
     mainWindow = createWindow(sendToRenderer, closeActiveSession);
@@ -29,6 +43,7 @@ app.whenReady().then(async () => {
     createMainWindow();
     setupSessionIpcHandlers();
     setupKnowledgeIpcHandlers(sendToRenderer);
+    setupNotesIpcHandlers(sendToRenderer);
     setupStorageIpcHandlers();
     setupGeneralIpcHandlers();
 });
@@ -225,6 +240,7 @@ function setupStorageIpcHandlers() {
         try {
             storage.clearAllData();
             resetKnowledgeCache();
+            resetNotesCache();
             return { success: true };
         } catch (error) {
             console.error('Error clearing all data:', error);

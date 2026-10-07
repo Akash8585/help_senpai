@@ -114,6 +114,19 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, closeSessio
     // Unregister all existing shortcuts
     globalShortcut.unregisterAll();
 
+    // globalShortcut.register returns false (without throwing) when another app owns the key.
+    const conflicts = [];
+    const register = (accelerator, handler) => {
+        const registered = globalShortcut.register(accelerator, handler);
+        if (!registered) {
+            conflicts.push(accelerator);
+            console.warn(`Shortcut ${accelerator} is already in use by another application`);
+        } else {
+            console.log(`Registered shortcut: ${accelerator}`);
+        }
+        return registered;
+    };
+
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
     const moveIncrement = Math.floor(Math.min(width, height) * 0.1);
@@ -145,8 +158,7 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, closeSessio
         const keybind = keybinds[action];
         if (keybind) {
             try {
-                globalShortcut.register(keybind, movementActions[action]);
-                console.log(`Registered ${action}: ${keybind}`);
+                register(keybind, movementActions[action]);
             } catch (error) {
                 console.error(`Failed to register ${action} (${keybind}):`, error);
             }
@@ -156,14 +168,13 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, closeSessio
     // Register toggle visibility shortcut
     if (keybinds.toggleVisibility) {
         try {
-            globalShortcut.register(keybinds.toggleVisibility, () => {
+            register(keybinds.toggleVisibility, () => {
                 if (mainWindow.isVisible()) {
                     mainWindow.hide();
                 } else {
                     mainWindow.showInactive();
                 }
             });
-            console.log(`Registered toggleVisibility: ${keybinds.toggleVisibility}`);
         } catch (error) {
             console.error(`Failed to register toggleVisibility (${keybinds.toggleVisibility}):`, error);
         }
@@ -172,7 +183,7 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, closeSessio
     // Register toggle click-through shortcut
     if (keybinds.toggleClickThrough) {
         try {
-            globalShortcut.register(keybinds.toggleClickThrough, () => {
+            register(keybinds.toggleClickThrough, () => {
                 mouseEventsIgnored = !mouseEventsIgnored;
                 if (mouseEventsIgnored) {
                     mainWindow.setIgnoreMouseEvents(true, { forward: true });
@@ -183,7 +194,6 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, closeSessio
                 }
                 mainWindow.webContents.send('click-through-toggled', mouseEventsIgnored);
             });
-            console.log(`Registered toggleClickThrough: ${keybinds.toggleClickThrough}`);
         } catch (error) {
             console.error(`Failed to register toggleClickThrough (${keybinds.toggleClickThrough}):`, error);
         }
@@ -192,7 +202,7 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, closeSessio
     // Register next step shortcut (either starts session or takes screenshot based on view)
     if (keybinds.nextStep) {
         try {
-            globalShortcut.register(keybinds.nextStep, async () => {
+            register(keybinds.nextStep, async () => {
                 console.log('Next step shortcut triggered');
                 try {
                     // Determine the shortcut key format
@@ -207,7 +217,6 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, closeSessio
                     console.error('Error handling next step shortcut:', error);
                 }
             });
-            console.log(`Registered nextStep: ${keybinds.nextStep}`);
         } catch (error) {
             console.error(`Failed to register nextStep (${keybinds.nextStep}):`, error);
         }
@@ -216,11 +225,10 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, closeSessio
     // Register previous response shortcut
     if (keybinds.previousResponse) {
         try {
-            globalShortcut.register(keybinds.previousResponse, () => {
+            register(keybinds.previousResponse, () => {
                 console.log('Previous response shortcut triggered');
                 sendToRenderer('navigate-previous-response');
             });
-            console.log(`Registered previousResponse: ${keybinds.previousResponse}`);
         } catch (error) {
             console.error(`Failed to register previousResponse (${keybinds.previousResponse}):`, error);
         }
@@ -229,11 +237,10 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, closeSessio
     // Register next response shortcut
     if (keybinds.nextResponse) {
         try {
-            globalShortcut.register(keybinds.nextResponse, () => {
+            register(keybinds.nextResponse, () => {
                 console.log('Next response shortcut triggered');
                 sendToRenderer('navigate-next-response');
             });
-            console.log(`Registered nextResponse: ${keybinds.nextResponse}`);
         } catch (error) {
             console.error(`Failed to register nextResponse (${keybinds.nextResponse}):`, error);
         }
@@ -242,11 +249,10 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, closeSessio
     // Register scroll up shortcut
     if (keybinds.scrollUp) {
         try {
-            globalShortcut.register(keybinds.scrollUp, () => {
+            register(keybinds.scrollUp, () => {
                 console.log('Scroll up shortcut triggered');
                 sendToRenderer('scroll-response-up');
             });
-            console.log(`Registered scrollUp: ${keybinds.scrollUp}`);
         } catch (error) {
             console.error(`Failed to register scrollUp (${keybinds.scrollUp}):`, error);
         }
@@ -255,11 +261,10 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, closeSessio
     // Register scroll down shortcut
     if (keybinds.scrollDown) {
         try {
-            globalShortcut.register(keybinds.scrollDown, () => {
+            register(keybinds.scrollDown, () => {
                 console.log('Scroll down shortcut triggered');
                 sendToRenderer('scroll-response-down');
             });
-            console.log(`Registered scrollDown: ${keybinds.scrollDown}`);
         } catch (error) {
             console.error(`Failed to register scrollDown (${keybinds.scrollDown}):`, error);
         }
@@ -268,7 +273,7 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, closeSessio
     // Register emergency erase shortcut
     if (keybinds.emergencyErase) {
         try {
-            globalShortcut.register(keybinds.emergencyErase, () => {
+            register(keybinds.emergencyErase, () => {
                 console.log('Emergency Erase triggered!');
                 if (mainWindow && !mainWindow.isDestroyed()) {
                     mainWindow.hide();
@@ -283,11 +288,12 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, closeSessio
                     }, 300);
                 }
             });
-            console.log(`Registered emergencyErase: ${keybinds.emergencyErase}`);
         } catch (error) {
             console.error(`Failed to register emergencyErase (${keybinds.emergencyErase}):`, error);
         }
     }
+
+    sendToRenderer('shortcut-conflicts', conflicts);
 }
 
 function setupWindowIpcHandlers(mainWindow, sendToRenderer, closeSession) {

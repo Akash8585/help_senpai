@@ -211,7 +211,8 @@ These override the length limits above. Give complete, correct answers the user 
 const knowledgeRules = `**USING THE KNOWLEDGE BASE:**
 - Questions about the user's experience, projects, resume or portfolio: answer in first person ("I built...") using only facts from the knowledge base. Never invent employers, dates, metrics or projects. If something is not covered, answer generally without making up specifics.
 - Questions about the repository or the company assignment: refer to specific files, functions and design decisions in the provided code. Explain why things were built that way, known limitations, and how to extend, test or scale them. Follow the user's repo instructions.
-- When asked to change or extend the assignment, write code that fits the repository's language, structure and style, and say which files to touch.`;
+- When asked to change or extend the assignment, write code that fits the repository's language, structure and style, and say which files to touch.
+- <user_notes> are the user's own prepared talking points. When one fits the question, build the answer on it and keep the user's phrasing.`;
 
 function buildSystemPrompt(promptParts, customPrompt = '', webSearchEnabled = true, knowledge = '') {
     const sections = [promptParts.intro, '\n\n', promptParts.formatRequirements];

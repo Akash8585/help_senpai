@@ -5,6 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const { getConfigDir, getCredentials, setCredentials } = require('../storage');
+const { getSharedNotesText } = require('./notes');
 
 const KINDS = {
     resume: { label: 'Resume', maxChars: 40000 },
@@ -214,7 +215,8 @@ function buildKnowledgeSection(maxChars = 220000) {
     const s = loadState();
     const ready = s.items.filter(i => i.status === 'ready' && i.content);
     const instructions = (s.repoInstructions || '').trim();
-    if (ready.length === 0 && !instructions) return '';
+    const sharedNotes = getSharedNotesText();
+    if (ready.length === 0 && !instructions && !sharedNotes) return '';
 
     const blocks = [];
     let used = 0;
@@ -224,6 +226,13 @@ function buildKnowledgeSection(maxChars = 220000) {
         const cap = Math.min(KINDS[item.kind].maxChars, Math.max(0, maxChars - used));
         if (cap < 500) break;
         const block = `<${item.kind} source="${escapeAttr(item.source)}">\n${truncate(item.content, cap)}\n</${item.kind}>`;
+        blocks.push(block);
+        used += block.length;
+    }
+
+    if (sharedNotes) {
+        const cap = Math.min(KINDS.notes.maxChars, Math.max(500, maxChars - used));
+        const block = `<user_notes>\n${truncate(sharedNotes, cap)}\n</user_notes>`;
         blocks.push(block);
         used += block.length;
     }
