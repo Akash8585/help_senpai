@@ -1,43 +1,99 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+    <!-- Senpai mascot: an original masked anime upperclassman with headphones. Flat colors, ink outlines. -->
     <defs>
-        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#7C6CFF" />
-            <stop offset="0.55" stop-color="#5B5BF0" />
-            <stop offset="1" stop-color="#2F6BEB" />
-        </linearGradient>
-        <radialGradient id="glowPink" cx="0.86" cy="0.12" r="0.6">
-            <stop offset="0" stop-color="#F59AD8" stop-opacity="0.85" />
-            <stop offset="1" stop-color="#F59AD8" stop-opacity="0" />
-        </radialGradient>
-        <radialGradient id="glowTeal" cx="0.08" cy="0.95" r="0.55">
-            <stop offset="0" stop-color="#5EE0D0" stop-opacity="0.7" />
-            <stop offset="1" stop-color="#5EE0D0" stop-opacity="0" />
-        </radialGradient>
-        <linearGradient id="spark" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#8B5CF6" />
-            <stop offset="1" stop-color="#2F6BEB" />
-        </linearGradient>
-        <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
-            <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#1B1660" flood-opacity="0.35" />
-        </filter>
+        <clipPath id="tile">
+            <rect x="40" y="40" width="900" height="900" rx="200" />
+        </clipPath>
+        <clipPath id="face">
+            <ellipse cx="492" cy="572" rx="228" ry="222" />
+        </clipPath>
+        <clipPath id="lidL">
+            <path d="M330 538 Q400 502 472 530 L472 660 L330 660 Z" />
+        </clipPath>
+        <clipPath id="lidR">
+            <path d="M512 530 Q584 502 654 538 L654 660 L512 660 Z" />
+        </clipPath>
     </defs>
 
-    <!-- Tile -->
-    <rect x="32" y="32" width="960" height="960" rx="224" fill="url(#bg)" />
-    <rect x="32" y="32" width="960" height="960" rx="224" fill="url(#glowPink)" />
-    <rect x="32" y="32" width="960" height="960" rx="224" fill="url(#glowTeal)" />
+    <!-- Tile with offset shadow -->
+    <rect x="84" y="84" width="900" height="900" rx="200" fill="#111114" />
+    <rect x="40" y="40" width="900" height="900" rx="200" fill="#3d3cff" />
 
-    <!-- Speech bubble -->
-    <path
-        filter="url(#shadow)"
-        fill="#FFFFFF"
-        d="M330 222 H694 A132 132 0 0 1 826 354 V598 A132 132 0 0 1 694 730 H468 L318 832 C302 843 282 831 285 812 L298 730 H330 A132 132 0 0 1 198 598 V354 A132 132 0 0 1 330 222 Z"
-    />
+    <!-- Hoodie + neck, clipped to the tile -->
+    <g clip-path="url(#tile)">
+        <rect x="448" y="730" width="88" height="110" fill="#ffd2b0" stroke="#111114" stroke-width="20" />
+        <path d="M230 990 Q246 812 410 790 L574 790 Q738 812 754 990 Z" fill="#ffffff" stroke="#111114" stroke-width="22" stroke-linejoin="round" />
+        <path d="M410 792 Q492 860 574 792" fill="none" stroke="#111114" stroke-width="18" stroke-linecap="round" />
+        <path d="M452 836 L440 912" stroke="#d4ff3a" stroke-width="16" stroke-linecap="round" />
+        <path d="M532 836 L544 912" stroke="#d4ff3a" stroke-width="16" stroke-linecap="round" />
+        <circle cx="440" cy="918" r="13" fill="#d4ff3a" stroke="#111114" stroke-width="8" />
+        <circle cx="544" cy="918" r="13" fill="#d4ff3a" stroke="#111114" stroke-width="8" />
+    </g>
+    <rect x="40" y="40" width="900" height="900" rx="200" fill="none" stroke="#111114" stroke-width="24" />
 
-    <!-- Insight sparkle -->
-    <path
-        fill="url(#spark)"
-        d="M512 296 C524 396 554 432 648 446 C554 460 524 496 512 596 C500 496 470 460 376 446 C470 432 500 396 512 296 Z"
-    />
-    <path fill="url(#spark)" d="M664 552 C669 590 680 602 716 608 C680 614 669 626 664 664 C659 626 648 614 612 608 C648 602 659 590 664 552 Z" />
+    <g transform="translate(0 -30)">
+        <!-- Spiky back hair -->
+        <path
+            d="M212 720 Q150 640 120 560 Q175 560 205 520 Q140 430 132 360 Q190 380 232 400 Q200 300 214 214 Q270 250 310 280 Q300 180 340 110 Q390 170 420 220 Q492 180 560 216 Q590 160 640 104 Q680 180 676 280 Q720 250 776 214 Q790 300 756 400 Q800 380 856 360 Q840 430 780 520 Q810 560 866 560 Q836 640 774 720 Z"
+            fill="#231f55"
+            stroke="#111114"
+            stroke-width="22"
+            stroke-linejoin="round"
+        />
+
+        <!-- Face -->
+        <ellipse cx="492" cy="572" rx="228" ry="222" fill="#ffe1c7" />
+
+        <!-- Mask -->
+        <g clip-path="url(#face)">
+            <path d="M250 642 Q492 600 734 642 L734 830 L250 830 Z" fill="#17171c" />
+            <path d="M296 712 Q492 684 688 712" fill="none" stroke="#34343f" stroke-width="10" stroke-linecap="round" />
+            <path d="M330 764 Q492 744 654 764" fill="none" stroke="#34343f" stroke-width="10" stroke-linecap="round" />
+        </g>
+        <path d="M492 674 C498 704 506 712 534 718 C506 724 498 732 492 762 C486 732 478 724 450 718 C478 712 486 704 492 674 Z" fill="#d4ff3a" />
+        <ellipse cx="492" cy="572" rx="228" ry="222" fill="none" stroke="#111114" stroke-width="22" />
+
+        <!-- Eyes -->
+        <g clip-path="url(#lidL)">
+            <ellipse cx="400" cy="560" rx="42" ry="52" fill="#2b2f8f" />
+            <ellipse cx="402" cy="566" rx="20" ry="28" fill="#0f0d2a" />
+            <circle cx="386" cy="540" r="13" fill="#ffffff" />
+            <circle cx="416" cy="584" r="6" fill="#ffffff" />
+        </g>
+        <path d="M344 536 Q400 504 458 528" fill="none" stroke="#111114" stroke-width="20" stroke-linecap="round" />
+        <path d="M346 534 L324 520" stroke="#111114" stroke-width="14" stroke-linecap="round" />
+
+        <g clip-path="url(#lidR)">
+            <ellipse cx="584" cy="560" rx="42" ry="52" fill="#2b2f8f" />
+            <ellipse cx="582" cy="566" rx="20" ry="28" fill="#0f0d2a" />
+            <circle cx="570" cy="540" r="13" fill="#ffffff" />
+            <circle cx="600" cy="584" r="6" fill="#ffffff" />
+        </g>
+        <path d="M526 528 Q584 504 640 536" fill="none" stroke="#111114" stroke-width="20" stroke-linecap="round" />
+        <path d="M638 534 L660 520" stroke="#111114" stroke-width="14" stroke-linecap="round" />
+
+        <!-- Fringe: swoopy strands, one falling between the eyes -->
+        <path
+            d="M262 560 C254 410 344 312 492 308 C640 312 730 410 722 560 Q712 470 668 440 Q660 486 640 520 Q628 470 600 430 Q592 474 560 505 Q548 460 522 420 Q516 500 488 566 Q478 480 458 420 Q446 470 420 505 Q410 470 386 432 Q380 490 352 520 Q336 480 318 442 Q290 480 262 560 Z"
+            fill="#231f55"
+            stroke="#111114"
+            stroke-width="22"
+            stroke-linejoin="round"
+        />
+        <path d="M360 356 Q410 326 466 320" fill="none" stroke="#5a52c7" stroke-width="16" stroke-linecap="round" />
+
+        <!-- Ahoge -->
+        <path d="M486 124 C468 52 532 22 584 46 C548 56 526 82 522 128 Z" fill="#231f55" stroke="#111114" stroke-width="20" stroke-linejoin="round" />
+
+        <!-- Headphones -->
+        <path d="M236 640 C214 300 344 158 492 158 C640 158 770 300 748 640" fill="none" stroke="#111114" stroke-width="76" stroke-linecap="round" />
+        <path d="M236 640 C214 300 344 158 492 158 C640 158 770 300 748 640" fill="none" stroke="#d4ff3a" stroke-width="44" stroke-linecap="round" />
+        <rect x="188" y="522" width="112" height="184" rx="44" fill="#d4ff3a" stroke="#111114" stroke-width="22" />
+        <rect x="684" y="522" width="112" height="184" rx="44" fill="#d4ff3a" stroke="#111114" stroke-width="22" />
+        <rect x="216" y="562" width="20" height="104" rx="10" fill="#111114" />
+        <rect x="748" y="562" width="20" height="104" rx="10" fill="#111114" />
+    </g>
+
+    <!-- "Noticed you" sparkle -->
+    <path d="M858 92 C866 134 876 144 916 152 C876 160 866 170 858 212 C850 170 840 160 800 152 C840 144 850 134 858 92 Z" fill="#d4ff3a" stroke="#111114" stroke-width="14" stroke-linejoin="round" />
 </svg>

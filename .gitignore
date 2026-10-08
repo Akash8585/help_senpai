@@ -96,3 +96,6 @@ out/
 
 # Reference clone of upstream (not part of this repo)
 _upstream/
+
+# Vercel project link (local)
+.vercel

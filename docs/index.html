@@ -8,7 +8,7 @@
             name="description"
             content="Senpai listens to your call, reads your screen on demand, and shows ready-to-say answers grounded in your resume, GitHub repos and notes. Free mode with Gemini + Groq. Open source."
         />
-        <meta name="theme-color" content="#0a0816" />
+        <meta name="theme-color" content="#f6f5f1" />
         <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="assets/logo-512.png" />
 
@@ -28,16 +28,12 @@
         <link rel="stylesheet" href="styles.css" />
     </head>
     <body>
-        <div class="bg" aria-hidden="true">
-            <div class="blob b1"></div>
-            <div class="blob b2"></div>
-            <div class="blob b3"></div>
-            <div class="grain"></div>
-        </div>
+        <div class="progress" aria-hidden="true"><span data-progress></span></div>
+        <canvas class="confetti" data-confetti aria-hidden="true"></canvas>
 
         <header class="nav">
             <a class="brand" href="#top" aria-label="Senpai home">
-                <img src="assets/favicon.svg" alt="" width="28" height="28" />
+                <img src="assets/favicon.svg" alt="" width="30" height="30" />
                 <span>Senpai</span>
             </a>
             <nav class="nav-links" aria-label="Sections">
@@ -47,7 +43,7 @@
                 <a href="#faq">FAQ</a>
             </nav>
             <div class="nav-actions">
-                <a class="btn ghost small gh" href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">
+                <a class="btn outline small gh" href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">
                     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
                         <path
                             fill="currentColor"
@@ -57,7 +53,7 @@
                     <span>Star</span>
                     <span class="star-count" data-stars hidden></span>
                 </a>
-                <a class="btn primary small" href="#download" data-download>Download</a>
+                <a class="btn dark small" href="https://github.com/Akash8585/help_senpai/releases/latest/download/Senpai-Setup.exe" data-download>Download</a>
             </div>
         </header>
 
@@ -65,28 +61,32 @@
             <!-- ───────── Hero ───────── -->
             <section class="hero">
                 <div class="hero-copy reveal">
-                    <a class="pill" href="#free"><span class="pill-dot"></span> New: free mode with Gemini + Groq <span aria-hidden="true">→</span></a>
-                    <h1>Never blank on a question <span class="grad">again.</span></h1>
+                    <a class="pill" href="#free"><span class="pill-new">New</span> Free mode with Gemini + Groq <span aria-hidden="true">→</span></a>
+                    <h1>
+                        Never blank on a <br />
+                        <span class="rotator"><span data-rotate>DSA question</span><span class="rotator-caret"></span></span><br />
+                        again.
+                    </h1>
                     <p class="lead">
                         Senpai listens to the call, reads your screen when you ask, and shows a ready-to-say answer in a tiny overlay. It knows your
-                        resume, your GitHub repo and your notes, so the answers sound like <em>you</em>.
+                        resume, your GitHub repo and your notes, so the answers sound like <mark>you</mark>.
                     </p>
-                    <div class="cta-row" id="download">
+                    <div class="cta-row">
                         <a class="btn primary big" href="https://github.com/Akash8585/help_senpai/releases/latest/download/Senpai-Setup.exe" data-download>
                             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                                 <path fill="currentColor" d="M3 5.5 10.5 4.4v7.1H3zm0 13 7.5 1.1v-7H3zm8.5 1.3L21 21.2V12.6h-9.5zm0-15.6v7.4H21V2.8z" />
                             </svg>
                             Download for Windows
                         </a>
-                        <a class="btn ghost big" href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">View on GitHub</a>
+                        <a class="btn outline big" href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">View on GitHub</a>
                     </div>
                     <p class="meta"><span data-version>v0.1.4</span> · Windows 10/11 · <span data-size>~115 MB</span> · Free &amp; open source</p>
-                    <p class="meta subtle">macOS &amp; Linux: <a href="https://github.com/Akash8585/help_senpai#development">run from source</a></p>
+                    <p class="meta">macOS &amp; Linux: <a href="https://github.com/Akash8585/help_senpai#development">run from source</a></p>
                 </div>
 
-                <div class="hero-visual reveal" data-tilt>
+                <div class="hero-visual reveal" data-sticker-zone>
                     <div class="window">
-                        <div class="window-bar"><i></i><i></i><i></i></div>
+                        <div class="window-bar"><i></i><i></i><i></i><span>senpai — live session</span></div>
                         <img
                             src="assets/screens/session.webp"
                             alt="Senpai session: a coding answer with approach, complexity and Python code, next to a notes side panel"
@@ -95,12 +95,20 @@
                             fetchpriority="high"
                         />
                     </div>
-                    <div class="float chip-them">
-                        <span class="tag them">Them</span> “Longest substring without repeating characters?”
-                    </div>
-                    <div class="float chip-listen"><span class="live-dot"></span> Listening…</div>
-                    <div class="float chip-keys"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> solve my screen</div>
+                    <div class="sticker s-them" data-sticker><span class="tag them">Them</span> “Longest substring without repeats?”</div>
+                    <div class="sticker s-free" data-sticker>$0 free mode</div>
+                    <div class="sticker s-keys" data-sticker><kbd>Ctrl</kbd> + <kbd>Enter</kbd> = solved</div>
+                    <div class="sticker s-oss" data-sticker>★ open source</div>
+                    <p class="drag-hint">psst — the stickers are draggable</p>
                 </div>
+            </section>
+
+            <!-- ───────── Stats ───────── -->
+            <section class="stats reveal" aria-label="Senpai in numbers">
+                <div><b data-count="0" data-prefix="$">$0</b><span>to get started</span></div>
+                <div><b data-count="3" data-suffix=" min">3 min</b><span>setup</span></div>
+                <div><b data-count="460" data-suffix="+">460+</b><span>AI models to pick from</span></div>
+                <div><b data-count="2000" data-prefix="~" data-suffix="/day">~2000/day</b><span>free transcriptions</span></div>
             </section>
 
             <!-- ───────── Marquee ───────── -->
@@ -117,17 +125,20 @@
             </div>
 
             <!-- ───────── Live demo ───────── -->
-            <section class="section demo-section">
+            <section class="section demo-section" id="demo">
                 <div class="section-head reveal">
                     <span class="eyebrow">Live demo</span>
-                    <h2>Watch it think.</h2>
+                    <h2>Watch it <span class="hl">think.</span></h2>
                     <p>The interviewer speaks, Senpai transcribes it and streams an answer before the silence gets awkward.</p>
                 </div>
                 <div class="demo reveal">
-                    <div class="demo-tabs" role="tablist" aria-label="Demo examples">
-                        <button role="tab" data-demo="0" aria-selected="true">DSA</button>
-                        <button role="tab" data-demo="1" aria-selected="false">System design</button>
-                        <button role="tab" data-demo="2" aria-selected="false">About you</button>
+                    <div class="demo-top">
+                        <div class="demo-tabs" role="tablist" aria-label="Demo examples">
+                            <button role="tab" data-demo="0" aria-selected="true">DSA</button>
+                            <button role="tab" data-demo="1" aria-selected="false">System design</button>
+                            <button role="tab" data-demo="2" aria-selected="false">About you</button>
+                        </div>
+                        <p class="try-keys">Try it: press <kbd data-key="Control">Ctrl</kbd> + <kbd data-key="Enter">Enter</kbd> for the next question</p>
                     </div>
                     <div class="demo-grid">
                         <div class="demo-card transcript">
@@ -146,12 +157,12 @@
             <section class="section" id="features">
                 <div class="section-head reveal">
                     <span class="eyebrow">Features</span>
-                    <h2>Your senpai, on call.</h2>
+                    <h2>Your senpai, <span class="hl">on call.</span></h2>
                     <p>Everything you need for the hard part of an interview: thinking on the spot.</p>
                 </div>
 
                 <div class="bento">
-                    <article class="card span-2 reveal">
+                    <article class="card span-2 c-blue reveal">
                         <div class="card-icon">🎧</div>
                         <h3>Hears the question</h3>
                         <p>
@@ -159,7 +170,7 @@
                             <span class="tag them">Them</span> or <span class="tag me">Me</span>, so it only answers the interviewer.
                         </p>
                     </article>
-                    <article class="card reveal">
+                    <article class="card c-lime reveal">
                         <div class="card-icon">⚡</div>
                         <h3>Solves your screen</h3>
                         <p>Press <kbd>Ctrl</kbd>+<kbd>Enter</kbd> and a vision model reads the problem on screen: approach, complexity, full code.</p>
@@ -190,7 +201,7 @@
                         <h3>Built for tech rounds</h3>
                         <p>DSA answers with complexity and edge cases. System design with requirements, data model, scaling and trade-offs.</p>
                     </article>
-                    <article class="card reveal">
+                    <article class="card c-pink reveal">
                         <div class="card-icon">💸</div>
                         <h3>Free mode</h3>
                         <p>Google Gemini for answers + Groq Whisper for speech. Two free API keys, no credit card.</p>
@@ -212,12 +223,12 @@
             <section class="section" id="how">
                 <div class="section-head reveal">
                     <span class="eyebrow">How it works</span>
-                    <h2>Ready in three minutes.</h2>
+                    <h2>Ready in <span class="hl">three minutes.</span></h2>
                 </div>
                 <div class="steps">
                     <div class="steps-list">
                         <div class="step reveal">
-                            <span class="step-num">01</span>
+                            <span class="step-num">1</span>
                             <div>
                                 <h3>Download &amp; pick “Free”</h3>
                                 <p>
@@ -228,14 +239,14 @@
                             </div>
                         </div>
                         <div class="step reveal">
-                            <span class="step-num">02</span>
+                            <span class="step-num">2</span>
                             <div>
                                 <h3>Add your context</h3>
                                 <p>Drop in your resume, portfolio and repo on the Context page. Jot STAR stories on the Notes page.</p>
                             </div>
                         </div>
                         <div class="step reveal">
-                            <span class="step-num">03</span>
+                            <span class="step-num">3</span>
                             <div>
                                 <h3>Start a session</h3>
                                 <p>Press <kbd>Ctrl</kbd>+<kbd>Enter</kbd>, share your screen once, and answers appear as the interviewer talks.</p>
@@ -243,8 +254,8 @@
                         </div>
                     </div>
                     <div class="steps-visual reveal">
-                        <div class="window small">
-                            <div class="window-bar"><i></i><i></i><i></i></div>
+                        <div class="window">
+                            <div class="window-bar"><i></i><i></i><i></i><span>home — quick setup</span></div>
                             <img src="assets/screens/home.webp" alt="Senpai Home screen with Quick setup set to Free" loading="lazy" width="1375" height="1000" />
                         </div>
                     </div>
@@ -255,7 +266,7 @@
             <section class="section" id="free">
                 <div class="section-head reveal">
                     <span class="eyebrow">Pricing</span>
-                    <h2>$0 is a valid option.</h2>
+                    <h2><span class="hl">$0</span> is a valid option.</h2>
                     <p>Senpai itself is free. You only choose which AI service does the thinking.</p>
                 </div>
                 <div class="plans">
@@ -279,31 +290,32 @@
                             <li>Auto-fallback when one is busy</li>
                             <li>50 answers/day, or 1,000/day after a one-time $10 top-up</li>
                         </ul>
-                        <a class="btn ghost" href="https://openrouter.ai/models?max_price=0" target="_blank" rel="noopener">See free models</a>
+                        <a class="btn outline" href="https://openrouter.ai/models?max_price=0" target="_blank" rel="noopener">See free models</a>
                     </article>
                     <article class="plan reveal">
                         <h3>Pro</h3>
-                        <div class="price small-price">Pay per use<span>· about 1¢ per hour of audio, plus answers</span></div>
+                        <div class="price small-price">Pay per use<span>about 1¢ per hour of audio, plus answers</span></div>
                         <ul>
                             <li>Any of hundreds of models on OpenRouter</li>
                             <li>Fastest and most reliable</li>
                             <li>Live cost meter in every session</li>
                         </ul>
-                        <a class="btn ghost" href="https://openrouter.ai/keys" target="_blank" rel="noopener">Get an OpenRouter key</a>
+                        <a class="btn outline" href="https://openrouter.ai/keys" target="_blank" rel="noopener">Get an OpenRouter key</a>
                     </article>
                 </div>
             </section>
 
             <!-- ───────── Shortcuts ───────── -->
             <section class="section shortcuts reveal">
-                <h2 class="small-h">Keyboard-first.</h2>
+                <span class="eyebrow">Shortcuts</span>
+                <h2 class="small-h">Keyboard-first. <span class="muted-h">Go on, press them.</span></h2>
                 <div class="shortcut-grid">
-                    <div><span><kbd>Ctrl</kbd><kbd>Enter</kbd></span>Start / solve screen</div>
-                    <div><span><kbd>Ctrl</kbd><kbd>\</kbd></span>Show / hide</div>
-                    <div><span><kbd>Ctrl</kbd><kbd>M</kbd></span>Click-through</div>
-                    <div><span><kbd>Ctrl</kbd><kbd>↑↓←→</kbd></span>Move window</div>
-                    <div><span><kbd>Ctrl</kbd><kbd>[</kbd><kbd>]</kbd></span>Previous / next answer</div>
-                    <div><span><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>E</kbd></span>Emergency erase</div>
+                    <div><span><kbd data-key="Control">Ctrl</kbd><kbd data-key="Enter">Enter</kbd></span>Start / solve screen</div>
+                    <div><span><kbd data-key="Control">Ctrl</kbd><kbd data-key="\">\</kbd></span>Show / hide</div>
+                    <div><span><kbd data-key="Control">Ctrl</kbd><kbd data-key="m">M</kbd></span>Click-through</div>
+                    <div><span><kbd data-key="Control">Ctrl</kbd><kbd data-key="Arrow">↑↓←→</kbd></span>Move window</div>
+                    <div><span><kbd data-key="Control">Ctrl</kbd><kbd data-key="[">[</kbd><kbd data-key="]">]</kbd></span>Previous / next answer</div>
+                    <div><span><kbd data-key="Control">Ctrl</kbd><kbd data-key="Shift">Shift</kbd><kbd data-key="e">E</kbd></span>Emergency erase</div>
                 </div>
             </section>
 
@@ -311,7 +323,7 @@
             <section class="section" id="faq">
                 <div class="section-head reveal">
                     <span class="eyebrow">FAQ</span>
-                    <h2>Questions, answered.</h2>
+                    <h2>Questions, <span class="hl">answered.</span></h2>
                 </div>
                 <div class="faq reveal">
                     <details>
@@ -359,20 +371,20 @@
 
             <!-- ───────── Final CTA ───────── -->
             <section class="final reveal">
-                <img src="assets/logo.svg" alt="" width="96" height="96" class="final-logo" />
-                <h2>Go get that offer.</h2>
+                <img src="assets/logo.svg" alt="Senpai mascot" width="120" height="120" class="final-logo" />
+                <h2>Go get that <span class="hl">offer.</span></h2>
                 <p>Free, open source, and ready before your next interview.</p>
                 <div class="cta-row center">
                     <a class="btn primary big" href="https://github.com/Akash8585/help_senpai/releases/latest/download/Senpai-Setup.exe" data-download
                         >Download for Windows</a
                     >
-                    <a class="btn ghost big" href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">★ Star on GitHub</a>
+                    <a class="btn outline big" href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">★ Star on GitHub</a>
                 </div>
             </section>
         </main>
 
         <footer class="footer">
-            <div class="brand"><img src="assets/favicon.svg" alt="" width="22" height="22" /> <span>Senpai</span></div>
+            <div class="brand"><img src="assets/favicon.svg" alt="" width="24" height="24" /> <span>Senpai</span></div>
             <nav aria-label="Footer">
                 <a href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">GitHub</a>
                 <a href="https://github.com/Akash8585/help_senpai/releases" target="_blank" rel="noopener">Releases</a>
@@ -385,6 +397,7 @@
             </p>
         </footer>
 
+        <div class="toast" data-toast role="status" aria-live="polite"></div>
         <script src="main.js" defer></script>
     </body>
 </html>

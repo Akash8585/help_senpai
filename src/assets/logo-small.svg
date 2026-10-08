@@ -1,24 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-    <!-- Simplified variant of logo.svg for 16-32px: full-bleed tile, larger bubble, one bold sparkle. -->
+    <!-- Simplified Senpai mascot for 16-32px: head fills the tile, thicker outlines, bigger eyes, no small details. -->
     <defs>
-        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#7C6CFF" />
-            <stop offset="0.55" stop-color="#5B5BF0" />
-            <stop offset="1" stop-color="#2F6BEB" />
-        </linearGradient>
-        <radialGradient id="glowPink" cx="0.9" cy="0.08" r="0.55">
-            <stop offset="0" stop-color="#F59AD8" stop-opacity="0.75" />
-            <stop offset="1" stop-color="#F59AD8" stop-opacity="0" />
-        </radialGradient>
+        <clipPath id="face">
+            <ellipse cx="492" cy="572" rx="228" ry="222" />
+        </clipPath>
     </defs>
 
-    <rect x="0" y="0" width="1024" height="1024" rx="210" fill="url(#bg)" />
-    <rect x="0" y="0" width="1024" height="1024" rx="210" fill="url(#glowPink)" />
+    <rect x="0" y="0" width="1024" height="1024" rx="210" fill="#3d3cff" />
 
-    <path
-        fill="#FFFFFF"
-        d="M250 150 H774 A116 116 0 0 1 890 266 V626 A116 116 0 0 1 774 742 H470 L282 878 C264 891 242 877 246 856 L262 742 H250 A116 116 0 0 1 134 626 V266 A116 116 0 0 1 250 150 Z"
-    />
+    <g transform="translate(512 610) scale(1.14) translate(-492 -572)">
+        <path
+            d="M212 720 Q150 640 120 560 Q175 560 205 520 Q140 430 132 360 Q190 380 232 400 Q200 300 214 214 Q270 250 310 280 Q300 180 340 110 Q390 170 420 220 Q492 180 560 216 Q590 160 640 104 Q680 180 676 280 Q720 250 776 214 Q790 300 756 400 Q800 380 856 360 Q840 430 780 520 Q810 560 866 560 Q836 640 774 720 Z"
+            fill="#231f55"
+            stroke="#111114"
+            stroke-width="30"
+            stroke-linejoin="round"
+        />
+        <ellipse cx="492" cy="572" rx="228" ry="222" fill="#ffe1c7" />
+        <g clip-path="url(#face)">
+            <path d="M250 642 Q492 600 734 642 L734 830 L250 830 Z" fill="#111114" />
+        </g>
+        <path d="M492 668 C500 704 508 712 542 718 C508 724 500 732 492 768 C484 732 476 724 442 718 C476 712 484 704 492 668 Z" fill="#d4ff3a" />
+        <ellipse cx="492" cy="572" rx="228" ry="222" fill="none" stroke="#111114" stroke-width="30" />
 
-    <path fill="#4F46E5" d="M512 236 C534 376 572 414 712 446 C572 478 534 516 512 656 C490 516 452 478 312 446 C452 414 490 376 512 236 Z" />
+        <ellipse cx="398" cy="566" rx="48" ry="56" fill="#1b1640" />
+        <circle cx="384" cy="546" r="16" fill="#ffffff" />
+        <ellipse cx="586" cy="566" rx="48" ry="56" fill="#1b1640" />
+        <circle cx="572" cy="546" r="16" fill="#ffffff" />
+
+        <path
+            d="M262 560 C254 410 344 312 492 308 C640 312 730 410 722 560 Q712 470 668 440 Q660 486 640 520 Q628 470 600 430 Q592 474 560 505 Q548 460 522 420 Q516 500 488 540 Q478 480 458 420 Q446 470 420 505 Q410 470 386 432 Q380 490 352 520 Q336 480 318 442 Q290 480 262 560 Z"
+            fill="#231f55"
+            stroke="#111114"
+            stroke-width="30"
+            stroke-linejoin="round"
+        />
+
+        <path d="M236 640 C214 300 344 158 492 158 C640 158 770 300 748 640" fill="none" stroke="#111114" stroke-width="92" stroke-linecap="round" />
+        <path d="M236 640 C214 300 344 158 492 158 C640 158 770 300 748 640" fill="none" stroke="#d4ff3a" stroke-width="54" stroke-linecap="round" />
+        <rect x="182" y="516" width="124" height="196" rx="48" fill="#d4ff3a" stroke="#111114" stroke-width="30" />
+        <rect x="678" y="516" width="124" height="196" rx="48" fill="#d4ff3a" stroke="#111114" stroke-width="30" />
+    </g>
 </svg>
