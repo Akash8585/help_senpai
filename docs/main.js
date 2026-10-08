@@ -76,6 +76,39 @@ updateProgress();
 const ROTATING = ['DSA question', 'system design', 'coding round', 'tough follow-up', 'STAR story'];
 const rotateEl = document.querySelector('[data-rotate]');
 
+/**
+ * Lock the highlighter to the width of the longest phrase so it never grows or shrinks while typing.
+ * If even that is wider than the headline (small phones), shrink the phrase to fit on one line.
+ */
+function sizeRotator() {
+    if (!rotateEl) return;
+    const box = rotateEl.parentElement;
+    const line = box.parentElement;
+    rotateEl.style.minWidth = '';
+    box.style.fontSize = '';
+    const probe = document.createElement('span');
+    probe.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;left:-9999px';
+    rotateEl.appendChild(probe);
+    let widest = 0;
+    for (const phrase of ROTATING) {
+        probe.textContent = phrase;
+        widest = Math.max(widest, probe.getBoundingClientRect().width);
+    }
+    probe.remove();
+    const chrome = box.getBoundingClientRect().width - rotateEl.getBoundingClientRect().width;
+    const available = line.getBoundingClientRect().width - 12; // room for the offset shadow
+    const scale = Math.min(1, available / (widest + chrome));
+    if (scale < 1) box.style.fontSize = `${scale}em`;
+    rotateEl.style.minWidth = `${Math.ceil(widest * scale)}px`;
+}
+sizeRotator();
+document.fonts?.ready.then(sizeRotator);
+let resizeTimer = null;
+addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(sizeRotator, 120);
+});
+
 async function rotateHeadline() {
     if (!rotateEl || reduceMotion) return;
     let index = 0;

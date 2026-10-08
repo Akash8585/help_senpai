@@ -312,7 +312,8 @@ main {
 
 .hero {
     display: grid;
-    grid-template-columns: 1fr 1.1fr;
+    /* minmax(0, …) keeps column widths independent of the typing headline */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
     align-items: center;
     gap: 64px;
     padding: 84px 0 64px;
@@ -361,6 +362,15 @@ h1 {
     margin: 24px 0 24px;
 }
 
+.h1-line {
+    display: block;
+}
+
+.nobr,
+.brand span {
+    white-space: nowrap;
+}
+
 .rotator {
     display: inline-block;
     position: relative;
@@ -372,6 +382,12 @@ h1 {
     box-shadow: 5px 5px 0 var(--ink);
     transform: rotate(-1.2deg);
     white-space: nowrap;
+}
+
+/* Width is fixed to the longest phrase by main.js so the box never resizes while typing */
+[data-rotate] {
+    display: inline-block;
+    text-align: left;
 }
 
 .rotator-caret {
@@ -1312,7 +1328,7 @@ h2 {
 
 @media (max-width: 1000px) {
     .hero {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         padding-top: 60px;
         gap: 56px;
     }
@@ -1387,11 +1403,6 @@ h2 {
 
     .stats div {
         padding: 18px;
-    }
-
-    .rotator {
-        white-space: normal;
-        max-width: 100%;
     }
 
     .s-them {
@@ -1652,6 +1663,11 @@ h2 {
 @media (max-width: 480px) {
     .nav .gh {
         display: none;
+    }
+
+    .nav .brand {
+        font-size: 18px;
+        gap: 8px;
     }
 
     .nav-actions {

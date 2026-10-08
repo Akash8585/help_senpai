@@ -3,7 +3,7 @@
 # Senpai
 
 <p>
-  <a href="https://senpai-rouge.vercel.app/"><b>Website</b></a> ·
+  <a href="https://help-senpai.vercel.app/"><b>Website</b></a> ·
   <a href="https://github.com/Akash8585/help_senpai/releases/latest/download/Senpai-Setup.exe"><b>Download for Windows</b></a> ·
   <a href="https://github.com/Akash8585/help_senpai/releases">All releases</a>
 </p>

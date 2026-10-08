@@ -3,21 +3,64 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Senpai — your AI copilot for interviews</title>
+        <title>Help Senpai — Free, Open-Source AI Interview Copilot App</title>
         <meta
             name="description"
-            content="Senpai listens to your call, reads your screen on demand, and shows ready-to-say answers grounded in your resume, GitHub repos and notes. Free mode with Gemini + Groq. Open source."
+            content="Help Senpai listens to your call, reads your screen on demand, and shows ready-to-say answers grounded in your resume, GitHub repos and notes. Free mode with Gemini + Groq. Open source."
         />
         <meta name="theme-color" content="#f6f5f1" />
+        <link rel="canonical" href="https://help-senpai.vercel.app/" />
+        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <meta name="application-name" content="Help Senpai" />
+        <link rel="manifest" href="site.webmanifest" />
         <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="assets/logo-512.png" />
 
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Senpai — your AI copilot for interviews" />
+        <meta property="og:site_name" content="Help Senpai" />
+        <meta property="og:title" content="Help Senpai — Free, Open-Source AI Interview Copilot App" />
         <meta property="og:description" content="Live answers from your resume, repos and notes. Free with Gemini + Groq. Open source." />
-        <meta property="og:image" content="https://senpai-rouge.vercel.app/assets/og.png" />
-        <meta property="og:url" content="https://senpai-rouge.vercel.app/" />
+        <meta property="og:image" content="https://help-senpai.vercel.app/assets/og.png" />
+        <meta property="og:url" content="https://help-senpai.vercel.app/" />
         <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@graph": [
+                    {
+                        "@type": "WebSite",
+                        "@id": "https://help-senpai.vercel.app/#website",
+                        "url": "https://help-senpai.vercel.app/",
+                        "name": "Help Senpai",
+                        "alternateName": ["Senpai", "Help Senpai app", "Senpai AI"],
+                        "publisher": { "@id": "https://help-senpai.vercel.app/#org" }
+                    },
+                    {
+                        "@type": "Organization",
+                        "@id": "https://help-senpai.vercel.app/#org",
+                        "name": "Help Senpai",
+                        "url": "https://help-senpai.vercel.app/",
+                        "logo": "https://help-senpai.vercel.app/assets/logo-512.png",
+                        "sameAs": ["https://github.com/Akash8585/help_senpai"]
+                    },
+                    {
+                        "@type": "SoftwareApplication",
+                        "name": "Help Senpai",
+                        "alternateName": ["Senpai", "Senpai AI"],
+                        "applicationCategory": "BusinessApplication",
+                        "operatingSystem": "Windows 10, Windows 11",
+                        "softwareVersion": "0.1.5",
+                        "downloadUrl": "https://github.com/Akash8585/help_senpai/releases/latest/download/Senpai-Setup.exe",
+                        "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+                        "image": "https://help-senpai.vercel.app/assets/logo-512.png",
+                        "screenshot": "https://help-senpai.vercel.app/assets/screens/session.webp",
+                        "description": "Help Senpai is a free, open-source AI copilot app for Windows that transcribes a conversation and suggests answers using your resume, GitHub repos and notes.",
+                        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+                        "publisher": { "@id": "https://help-senpai.vercel.app/#org" }
+                    }
+                ]
+            }
+        </script>
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -45,9 +88,9 @@
         <canvas class="confetti" data-confetti aria-hidden="true"></canvas>
 
         <header class="nav">
-            <a class="brand" href="#top" aria-label="Senpai home">
+            <a class="brand" href="#top" aria-label="Help Senpai home">
                 <img src="assets/favicon.svg" alt="" width="30" height="30" />
-                <span>Senpai</span>
+                <span>Help Senpai</span>
             </a>
             <nav class="nav-links" aria-label="Sections">
                 <a href="#features">Features</a>
@@ -86,12 +129,12 @@
                 <div class="hero-copy reveal">
                     <a class="pill" href="#free"><span class="pill-new">New</span> Free mode with Gemini + Groq <span aria-hidden="true">→</span></a>
                     <h1>
-                        Never blank on a <br />
-                        <span class="rotator"><span data-rotate>DSA question</span><span class="rotator-caret"></span></span><br />
-                        again.
+                        <span class="h1-line">Never blank <span class="nobr">on a</span></span>
+                        <span class="h1-line"><span class="rotator"><span data-rotate>DSA question</span><span class="rotator-caret"></span></span></span>
+                        <span class="h1-line">again.</span>
                     </h1>
                     <p class="lead">
-                        Senpai listens to the call, reads your screen when you ask, and shows a ready-to-say answer in a tiny overlay. It knows your
+                        Help Senpai listens to the call, reads your screen when you ask, and shows a ready-to-say answer in a tiny overlay. It knows your
                         resume, your GitHub repo and your notes, so the answers sound like <mark>you</mark>.
                     </p>
                     <div class="cta-row">
@@ -127,7 +170,7 @@
             </section>
 
             <!-- ───────── Stats ───────── -->
-            <section class="stats reveal" aria-label="Senpai in numbers">
+            <section class="stats reveal" aria-label="Help Senpai in numbers">
                 <div><b data-count="0" data-prefix="$">$0</b><span>to get started</span></div>
                 <div><b data-count="3" data-suffix=" min">3 min</b><span>setup</span></div>
                 <div><b data-count="460" data-suffix="+">460+</b><span>AI models to pick from</span></div>
@@ -394,7 +437,7 @@
 
             <!-- ───────── Final CTA ───────── -->
             <section class="final reveal">
-                <img src="assets/logo.svg" alt="Senpai mascot" width="120" height="120" class="final-logo" />
+                <img src="assets/logo.svg" alt="Help Senpai mascot" width="120" height="120" class="final-logo" />
                 <h2>Go get that <span class="hl">offer.</span></h2>
                 <p>Free, open source, and ready before your next interview.</p>
                 <div class="cta-row center">
@@ -407,7 +450,7 @@
         </main>
 
         <footer class="footer">
-            <div class="brand"><img src="assets/favicon.svg" alt="" width="24" height="24" /> <span>Senpai</span></div>
+            <div class="brand"><img src="assets/favicon.svg" alt="" width="24" height="24" /> <span>Help Senpai</span></div>
             <nav aria-label="Footer">
                 <a href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">GitHub</a>
                 <a href="https://github.com/Akash8585/help_senpai/releases" target="_blank" rel="noopener">Releases</a>
