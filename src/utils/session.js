@@ -1,15 +1,15 @@
-// Session orchestration: owns the active provider (OpenRouter or local AI), routes captured
+// Session orchestration: owns the active mode (hosted APIs or local AI), routes captured
 // audio / screenshots / typed text to it, and records conversation history.
 //
-// OpenRouter pipeline:
-//   PCM audio -> speechSegmenter (VAD) -> /audio/transcriptions -> chat completions (streamed) -> renderer
+// API pipeline (answers and transcription can use different providers, see providers.js):
+//   PCM audio -> speechSegmenter (VAD) -> transcription provider -> chat provider (streamed) -> renderer
 
 const { BrowserWindow, ipcMain } = require('electron');
 const { spawn } = require('child_process');
 const { saveDebugAudio } = require('../audioUtils');
 const { getSystemPrompt } = require('./prompts');
-const { getOpenRouterApiKey, getConfig, getPreferences } = require('../storage');
-const { streamChat, transcribe, listModels, getKeyInfo } = require('./openrouter');
+const { getProviderApiKey, getConfig, getPreferences } = require('../storage');
+const { PROVIDERS, streamChat, transcribe, listModels, checkKey, describeProviders } = require('./providers');
 const { createSpeechSegmenter, createWavBuffer } = require('./speechSegmenter');
 const { startTransportLog, logTransportEvent, closeTransportLog } = require('./transportLogger');
 const { buildKnowledgeSection } = require('./knowledge');
@@ -21,7 +21,7 @@ function getLocalAi() {
     return _localai;
 }
 
-// Provider mode: 'openrouter' or 'local'. null when no session is running.
+// Mode: 'api' (hosted providers) or 'local'. null when no session is running.
 let currentProviderMode = null;
 
 // Conversation tracking (persisted to history)
@@ -31,8 +31,8 @@ let screenAnalysisHistory = [];
 let currentProfile = null;
 let currentCustomPrompt = null;
 
-// OpenRouter session state
-let openRouterSession = null;
+// API session state
+let apiSession = null;
 
 let systemAudioProc = null;
 
@@ -180,15 +180,45 @@ function addUsageCost(session, usage) {
     sendToRenderer('usage-update', { cost: session.cost });
 }
 
-function createOpenRouterSession({ apiKey, config, preferences, profile, customPrompt, language }) {
-    const webSearch = preferences.webSearchEnabled === true;
+const ANSWER_PROVIDERS = ['openrouter', 'gemini'];
+const TRANSCRIPTION_PROVIDERS = ['openrouter', 'groq', 'gemini'];
+
+/** Which provider and models handle answers and transcription, from config. */
+function resolveProviderSetup(config) {
+    const answerProvider = ANSWER_PROVIDERS.includes(config.answerProvider) ? config.answerProvider : 'openrouter';
+    const transcriptionProvider = TRANSCRIPTION_PROVIDERS.includes(config.transcriptionProvider) ? config.transcriptionProvider : 'openrouter';
+    const models = {
+        openrouter: { chat: config.openrouterModel, vision: config.openrouterVisionModel, transcription: config.openrouterTranscriptionModel },
+        gemini: { chat: config.geminiModel, vision: config.geminiVisionModel, transcription: config.geminiTranscriptionModel },
+        groq: { transcription: config.groqTranscriptionModel },
+    };
+    const chatModel = models[answerProvider].chat || PROVIDERS[answerProvider].defaults.chatModel;
+    return {
+        answerProvider,
+        transcriptionProvider,
+        chatModel,
+        visionModel: models[answerProvider].vision || chatModel,
+        transcriptionModel: models[transcriptionProvider].transcription || PROVIDERS[transcriptionProvider].defaults.transcriptionModel,
+    };
+}
+
+// Free OpenRouter models are often busy; let OpenRouter fall back to its free-model router.
+function fallbacksFor(provider, model) {
+    return provider === 'openrouter' && /:free$/.test(model) ? ['openrouter/free'] : undefined;
+}
+
+function createApiSession({ keys, setup, config, preferences, profile, customPrompt, language }) {
+    // Web search is an OpenRouter plugin; other providers would only be told about a tool they lack.
+    const webSearch = preferences.webSearchEnabled === true && setup.answerProvider === 'openrouter';
     const audioMode = preferences.audioMode || 'speaker_only';
 
     const session = {
-        apiKey,
-        chatModel: config.openrouterModel,
-        visionModel: config.openrouterVisionModel || config.openrouterModel,
-        transcriptionModel: config.openrouterTranscriptionModel,
+        keys,
+        answerProvider: setup.answerProvider,
+        transcriptionProvider: setup.transcriptionProvider,
+        chatModel: setup.chatModel,
+        visionModel: setup.visionModel,
+        transcriptionModel: setup.transcriptionModel,
         disableReasoning: config.disableReasoning !== false,
         webSearch,
         language: toIso639_1(language),
@@ -219,29 +249,35 @@ function queueTranscription(session, source, pcm16k) {
     // Transcribe sequentially so utterances stay in spoken order.
     session.transcriptionChain = session.transcriptionChain
         .then(() => handleUtterance(session, source, pcm16k))
-        .catch(error => console.error('[OpenRouter] Utterance handling error:', error));
+        .catch(error => console.error('[API] Utterance handling error:', error));
 }
 
 async function handleUtterance(session, source, pcm16k) {
     if (!session.active) return;
 
     if (!session.inflight) sendToRenderer('update-status', 'Transcribing...');
-    logTransportEvent('openrouter.stt.request', { model: session.transcriptionModel, source, bytes: pcm16k.length });
+    logTransportEvent('api.stt.request', {
+        provider: session.transcriptionProvider,
+        model: session.transcriptionModel,
+        source,
+        bytes: pcm16k.length,
+    });
 
     let text;
     try {
         const result = await transcribe({
-            apiKey: session.apiKey,
+            provider: session.transcriptionProvider,
+            apiKey: session.keys[session.transcriptionProvider],
             model: session.transcriptionModel,
             wavBuffer: createWavBuffer(pcm16k),
             language: session.language,
         });
         text = result.text;
         addUsageCost(session, result.usage);
-        logTransportEvent('openrouter.stt.response', { source, text, usage: result.usage });
+        logTransportEvent('api.stt.response', { source, text, usage: result.usage });
     } catch (error) {
-        console.error('[OpenRouter] Transcription error:', error);
-        logTransportEvent('openrouter.stt.error', { error: error.message });
+        console.error('[API] Transcription error:', error);
+        logTransportEvent('api.stt.error', { error: error.message });
         sendToRenderer('update-status', 'Transcription error: ' + error.message);
         return;
     }
@@ -288,13 +324,15 @@ async function generateAnswer(session, { model = session.chatModel, userContentO
     }
 
     sendToRenderer('update-status', 'Thinking...');
-    logTransportEvent('openrouter.chat.request', { model, promptText });
+    logTransportEvent('api.chat.request', { provider: session.answerProvider, model, promptText });
 
     let isFirst = true;
     try {
         const { text, usage, finishReason } = await streamChat({
-            apiKey: session.apiKey,
+            provider: session.answerProvider,
+            apiKey: session.keys[session.answerProvider],
             model,
+            fallbackModels: fallbacksFor(session.answerProvider, model),
             messages,
             webSearch: session.webSearch,
             disableReasoning: session.disableReasoning,
@@ -307,7 +345,7 @@ async function generateAnswer(session, { model = session.chatModel, userContentO
         });
 
         addUsageCost(session, usage);
-        logTransportEvent('openrouter.chat.response', { model, text, usage, finishReason });
+        logTransportEvent('api.chat.response', { model, text, usage, finishReason });
 
         if (controller.signal.aborted || !session.active) return null;
 
@@ -326,8 +364,8 @@ async function generateAnswer(session, { model = session.chatModel, userContentO
         return { text, promptText, model };
     } catch (error) {
         if (error.name === 'AbortError') return null;
-        console.error('[OpenRouter] Chat error:', error);
-        logTransportEvent('openrouter.chat.error', { error: error.message });
+        console.error('[API] Chat error:', error);
+        logTransportEvent('api.chat.error', { error: error.message });
         sendToRenderer('update-status', 'Error: ' + error.message);
         if (isFirst) sendToRenderer('new-response', `**Error:** ${error.message}`);
         return null;
@@ -342,21 +380,29 @@ async function answerAndRecord(session, options) {
     return result;
 }
 
-async function initializeOpenRouterSession(profile = 'interview', customPrompt = '', language = 'en-US') {
-    const apiKey = getOpenRouterApiKey();
-    if (!apiKey) {
-        return { success: false, error: 'Add your OpenRouter API key first' };
+async function initializeApiSession(profile = 'interview', customPrompt = '', language = 'en-US') {
+    const config = getConfig();
+    const setup = resolveProviderSetup(config);
+    const needed = [...new Set([setup.answerProvider, setup.transcriptionProvider])];
+
+    const keys = {};
+    for (const provider of needed) {
+        keys[provider] = getProviderApiKey(provider);
+        if (!keys[provider]) {
+            return { success: false, error: `Add your ${PROVIDERS[provider].label} API key first` };
+        }
     }
 
     sendToRenderer('session-initializing', true);
     try {
         // Fail fast on a bad key instead of failing on the first utterance.
-        await getKeyInfo(apiKey);
+        await Promise.all(needed.map(provider => checkKey(provider, keys[provider])));
 
-        closeOpenRouterSession();
-        openRouterSession = createOpenRouterSession({
-            apiKey,
-            config: getConfig(),
+        closeApiSession();
+        apiSession = createApiSession({
+            keys,
+            setup,
+            config,
             preferences: getPreferences(),
             profile,
             customPrompt,
@@ -364,38 +410,38 @@ async function initializeOpenRouterSession(profile = 'interview', customPrompt =
         });
 
         initializeNewSession(profile, customPrompt);
-        currentProviderMode = 'openrouter';
+        currentProviderMode = 'api';
         sendToRenderer('update-status', 'Listening...');
         return { success: true };
     } catch (error) {
-        console.error('[OpenRouter] Session init error:', error);
+        console.error('[API] Session init error:', error);
         return { success: false, error: error.message };
     } finally {
         sendToRenderer('session-initializing', false);
     }
 }
 
-function closeOpenRouterSession() {
-    if (!openRouterSession) return;
-    openRouterSession.active = false;
-    openRouterSession.inflight?.abort();
-    openRouterSession = null;
+function closeApiSession() {
+    if (!apiSession) return;
+    apiSession.active = false;
+    apiSession.inflight?.abort();
+    apiSession = null;
 }
 
-function pushOpenRouterAudio(pcmBuffer, source) {
-    openRouterSession?.segmenters[source]?.push(pcmBuffer);
+function pushApiAudio(pcmBuffer, source) {
+    apiSession?.segmenters[source]?.push(pcmBuffer);
 }
 
-async function sendOpenRouterText(text) {
-    const session = openRouterSession;
+async function sendApiText(text) {
+    const session = apiSession;
     if (!session) return { success: false, error: 'No active session' };
     appendUserText(session, text);
     answerAndRecord(session);
     return { success: true };
 }
 
-async function sendOpenRouterImage(base64Data, prompt) {
-    const session = openRouterSession;
+async function sendApiImage(base64Data, prompt) {
+    const session = apiSession;
     if (!session) return { success: false, error: 'No active session' };
 
     const promptText = prompt || 'Help me with what is on my screen.';
@@ -436,8 +482,8 @@ function killExistingSystemAudioDump() {
 function routeAudio(pcmBuffer, source) {
     if (currentProviderMode === 'local') {
         getLocalAi().processLocalAudio(pcmBuffer);
-    } else if (currentProviderMode === 'openrouter') {
-        pushOpenRouterAudio(pcmBuffer, source);
+    } else if (currentProviderMode === 'api') {
+        pushApiAudio(pcmBuffer, source);
     }
 }
 
@@ -537,7 +583,7 @@ function closeActiveSession() {
     if (currentProviderMode === 'local') {
         getLocalAi().closeLocalSession();
     }
-    closeOpenRouterSession();
+    closeApiSession();
 
     currentProviderMode = null;
     closeTransportLog();
@@ -546,9 +592,9 @@ function closeActiveSession() {
 // ============ IPC ============
 
 function setupSessionIpcHandlers() {
-    ipcMain.handle('initialize-openrouter', async (event, profile, customPrompt, language) => {
+    ipcMain.handle('initialize-api', async (event, profile, customPrompt, language) => {
         closeActiveSession();
-        return initializeOpenRouterSession(profile, customPrompt, language);
+        return initializeApiSession(profile, customPrompt, language);
     });
 
     ipcMain.handle('initialize-local', async (event, localLlmModel, whisperModel, profile, customPrompt) => {
@@ -599,7 +645,7 @@ function setupSessionIpcHandlers() {
                 return await getLocalAi().sendLocalImage(data, prompt);
             }
 
-            return await sendOpenRouterImage(data, prompt);
+            return await sendApiImage(data, prompt);
         } catch (error) {
             console.error('Error sending image:', error);
             return { success: false, error: error.message };
@@ -615,7 +661,7 @@ function setupSessionIpcHandlers() {
             if (currentProviderMode === 'local') {
                 return await getLocalAi().sendLocalText(text.trim());
             }
-            return await sendOpenRouterText(text.trim());
+            return await sendApiText(text.trim());
         } catch (error) {
             console.error('Error sending text:', error);
             return { success: false, error: error.message };
@@ -659,19 +705,22 @@ function setupSessionIpcHandlers() {
         return { success: true, sessionId: currentSessionId };
     });
 
-    ipcMain.handle('openrouter:list-models', async (event, outputModality) => {
+    ipcMain.handle('ai:providers', async () => ({ success: true, data: describeProviders() }));
+
+    ipcMain.handle('ai:list-models', async (event, provider, kind) => {
         try {
-            return { success: true, data: await listModels({ outputModality }) };
+            if (!PROVIDERS[provider]) throw new Error('Unknown provider');
+            const apiKey = provider === 'openrouter' ? '' : getProviderApiKey(provider);
+            return { success: true, data: await listModels({ provider, apiKey, kind: kind === 'transcription' ? 'transcription' : 'chat' }) };
         } catch (error) {
             return { success: false, error: error.message };
         }
     });
 
-    ipcMain.handle('openrouter:key-info', async () => {
+    ipcMain.handle('ai:check-key', async (event, provider) => {
         try {
-            const apiKey = getOpenRouterApiKey();
-            if (!apiKey) return { success: false, error: 'No API key' };
-            return { success: true, data: await getKeyInfo(apiKey) };
+            if (!PROVIDERS[provider]) throw new Error('Unknown provider');
+            return { success: true, data: await checkKey(provider, getProviderApiKey(provider)) };
         } catch (error) {
             return { success: false, error: error.message };
         }

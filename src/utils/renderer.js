@@ -49,6 +49,13 @@ const storage = {
     async setOpenRouterApiKey(apiKey) {
         return ipcRenderer.invoke('storage:set-openrouter-api-key', apiKey);
     },
+    async getProviderApiKey(provider) {
+        const result = await ipcRenderer.invoke('storage:get-provider-api-key', provider);
+        return result.success ? result.data : '';
+    },
+    async setProviderApiKey(provider, apiKey) {
+        return ipcRenderer.invoke('storage:set-provider-api-key', provider, apiKey);
+    },
 
     // Preferences
     async getPreferences() {
@@ -127,9 +134,9 @@ function arrayBufferToBase64(buffer) {
     return btoa(binary);
 }
 
-async function initializeOpenRouter(profile = 'interview', language = 'en-US') {
+async function initializeApi(profile = 'interview', language = 'en-US') {
     const prefs = await storage.getPreferences();
-    const result = await ipcRenderer.invoke('initialize-openrouter', profile, prefs.customPrompt || '', language);
+    const result = await ipcRenderer.invoke('initialize-api', profile, prefs.customPrompt || '', language);
     senpai.setStatus(result.success ? 'Listening...' : 'Error: ' + result.error);
     return result;
 }
@@ -176,14 +183,19 @@ const notes = {
     },
 };
 
-// OpenRouter helpers (requests run in the main process)
-const openrouter = {
-    async listModels(outputModality) {
-        const result = await ipcRenderer.invoke('openrouter:list-models', outputModality);
+// AI providers (OpenRouter, Google Gemini, Groq). Requests run in the main process.
+const ai = {
+    async providers() {
+        const result = await ipcRenderer.invoke('ai:providers');
         return result.success ? result.data : [];
     },
-    async getKeyInfo() {
-        return ipcRenderer.invoke('openrouter:key-info');
+    /** kind: 'chat' | 'transcription'. Gemini and Groq need their key saved first. */
+    async listModels(provider, kind = 'chat') {
+        const result = await ipcRenderer.invoke('ai:list-models', provider, kind);
+        return result.success ? result.data : [];
+    },
+    checkKey(provider) {
+        return ipcRenderer.invoke('ai:check-key', provider);
     },
 };
 
@@ -1100,9 +1112,9 @@ const senpai = {
     updateCurrentResponse: response => senpaiApp.updateCurrentResponse(response),
 
     // Core functionality
-    initializeOpenRouter,
+    initializeApi,
     initializeLocal,
-    openrouter,
+    ai,
     knowledge,
     notes,
     cancelLocalInitialization,

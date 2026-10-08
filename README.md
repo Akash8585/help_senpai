@@ -64,21 +64,30 @@ full question.
 
 ## Setup
 
-1. Get an API key at [openrouter.ai/keys](https://openrouter.ai/keys) and add some credit
-2. `npm install`
-3. `npm start`
-4. Paste the key on the home screen. A green status line confirms it's valid.
+1. `npm install`
+2. `npm start`
+3. On the Home screen pick a **Quick setup** and paste the keys it asks for. A green status line confirms each key.
 
-### Default models
+### Free or paid
 
-| Purpose        | Default                         | Setting              |
-| -------------- | ------------------------------- | -------------------- |
-| Answers        | `google/gemini-3.8-flash`       | Home → AI responses  |
-| Screenshots    | `google/gemini-3.8-flash`       | Home → AI responses  |
-| Speech-to-text | `openai/whisper-large-v3-turbo` | Home → Transcription |
+Answers and transcription can use different providers. Everything runs through hosted APIs; nothing is installed locally.
 
-Any model id from [openrouter.ai/models](https://openrouter.ai/models) works. The screenshot model must accept image
-input. "Disable thinking" sends `reasoning.effort = "none"` for faster answers from reasoning models.
+| Quick setup                | Answers + screenshots                        | Speech-to-text                      | Cost                                                                                                                  |
+| -------------------------- | -------------------------------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Free**                   | Google Gemini `gemini-3.8-flash` (free tier) | Groq `whisper-large-v3-turbo`       | $0. Free keys from [AI Studio](https://aistudio.google.com/apikey) and [Groq](https://console.groq.com/keys), no card |
+| **OpenRouter free models** | OpenRouter `google/gemma-4-31b-it:free`      | Groq `whisper-large-v3-turbo`       | $0. 50 answers/day, or 1,000/day after a one-time $10 top-up                                                          |
+| **OpenRouter (paid)**      | OpenRouter `google/gemini-3.8-flash`         | OpenRouter `whisper-large-v3-turbo` | Pay per use (about 1¢ per hour of audio plus answers)                                                                 |
+
+Free-tier notes:
+
+- Free tiers have per-minute and per-day limits. When one is hit, Senpai shows which provider limited the request.
+- Google may use Gemini free-tier content to improve its products. Some free OpenRouter providers may log prompts;
+  review [OpenRouter privacy settings](https://openrouter.ai/settings/privacy) before sending your resume or code.
+- Free OpenRouter models fall back to OpenRouter's free-model router automatically when the chosen one is busy.
+- Groq is used for transcription because every spoken sentence is one request; its free tier allows about 2,000 a day.
+
+Any model id from the provider's catalog works (the fields suggest models once a key is saved). The screenshot model
+must accept image input. Web search is available with OpenRouter answers only.
 
 ## Keyboard shortcuts
 
@@ -121,7 +130,7 @@ npx prettier --write src
 
 Key files:
 
-- `src/utils/openrouter.js` — OpenRouter client (streaming chat, STT, model list, key info)
+- `src/utils/providers.js` — OpenRouter, Google Gemini and Groq clients (streaming chat, speech-to-text, model lists, key checks)
 - `src/utils/speechSegmenter.js` — voice activity detection, resampling, WAV encoding
 - `src/utils/session.js` — session orchestration and IPC handlers
 - `src/utils/notes.js` / `src/components/views/NotesPanel.js` — note chunks, Notes page and in-session side panel

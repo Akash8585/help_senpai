@@ -590,7 +590,7 @@ export class SenpaiApp extends LitElement {
 
     async handleStart() {
         const prefs = await senpai.storage.getPreferences();
-        const providerMode = prefs.providerMode === 'local' ? 'local' : 'openrouter';
+        const providerMode = prefs.providerMode === 'local' ? 'local' : 'api';
         const mainView = this.shadowRoot.querySelector('main-view');
 
         if (providerMode === 'local') {
@@ -600,13 +600,8 @@ export class SenpaiApp extends LitElement {
                 return;
             }
         } else {
-            const apiKey = await senpai.storage.getOpenRouterApiKey();
-            if (!apiKey) {
-                mainView?.triggerApiKeyError?.('Add your OpenRouter API key');
-                return;
-            }
-
-            const result = await senpai.initializeOpenRouter(this.selectedProfile, this.selectedLanguage);
+            // The main process checks that every provider in use has a valid key.
+            const result = await senpai.initializeApi(this.selectedProfile, this.selectedLanguage);
             if (!result.success) {
                 mainView?.triggerApiKeyError?.(result.error);
                 return;

@@ -117,6 +117,23 @@ function setupStorageIpcHandlers() {
         }
     });
 
+    ipcMain.handle('storage:get-provider-api-key', async (event, provider) => {
+        try {
+            return { success: true, data: storage.getProviderApiKey(provider) };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('storage:set-provider-api-key', async (event, provider, apiKey) => {
+        try {
+            storage.setProviderApiKey(provider, apiKey);
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
     ipcMain.handle('storage:get-openrouter-api-key', async () => {
         try {
             return { success: true, data: storage.getOpenRouterApiKey() };

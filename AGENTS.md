@@ -17,8 +17,9 @@ npm start
 - `src/index.js` — Electron main entry; storage IPC handlers.
 - `src/utils/session.js` — owns the active provider (`openrouter` or `local`), routes audio/screenshots/text,
   records history, and registers the session IPC handlers.
-- `src/utils/openrouter.js` — OpenRouter REST client: `streamChat` (SSE), `transcribe`
-  (`/audio/transcriptions`), `listModels`, `getKeyInfo`.
+- `src/utils/providers.js` — HTTP clients for OpenRouter, Google Gemini (OpenAI-compatible endpoint) and Groq:
+  `streamChat` (SSE), `transcribe`, `listModels`, `checkKey`. Answers (`config.answerProvider`) and transcription
+  (`config.transcriptionProvider`) can use different providers; keys live in `credentials.json`.
 - `src/utils/speechSegmenter.js` — energy VAD that turns 24 kHz PCM16 chunks into 16 kHz utterances. Shared by
   both providers.
 - `src/utils/notes.js` — note chunks in `notes.json` (CRUD, bulk add); chunks with `shareWithAI` are added to the
@@ -31,9 +32,9 @@ npm start
 - `src/storage.js` — JSON files in the `senpai-config` directory (config, credentials, preferences, history).
 - `src/components/` — Lit views; `SenpaiApp.js` is the shell.
 
-Renderer → main messages: `initialize-openrouter`, `initialize-local`, `send-audio-content` (system audio),
-`send-mic-audio-content`, `send-image-content`, `send-text-message`, `close-session`, `openrouter:list-models`,
-`openrouter:key-info`. Main → renderer: `new-response`, `update-response`, `update-status`, `usage-update`,
+Renderer → main messages: `initialize-api`, `initialize-local`, `send-audio-content` (system audio),
+`send-mic-audio-content`, `send-image-content`, `send-text-message`, `close-session`, `ai:providers`,
+`ai:list-models`, `ai:check-key`. Main → renderer: `new-response`, `update-response`, `update-status`, `usage-update`,
 `save-conversation-turn`, `save-screen-analysis`.
 
 ## Style

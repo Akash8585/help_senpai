@@ -1,7 +1,46 @@
 import { html, css, LitElement } from '../../assets/lit-core-2.7.4.min.js';
 
-const DEFAULT_CHAT_MODEL = 'google/gemini-3.8-flash';
-const DEFAULT_STT_MODEL = 'openai/whisper-large-v3-turbo';
+// Config keys holding each provider's model choices (see storage.js DEFAULT_CONFIG).
+const MODEL_FIELDS = {
+    openrouter: { chat: 'openrouterModel', vision: 'openrouterVisionModel', transcription: 'openrouterTranscriptionModel' },
+    gemini: { chat: 'geminiModel', vision: 'geminiVisionModel', transcription: 'geminiTranscriptionModel' },
+    groq: { transcription: 'groqTranscriptionModel' },
+};
+
+const PROVIDER_FALLBACK = {
+    openrouter: { label: 'OpenRouter', keyUrl: 'https://openrouter.ai/keys', keyPlaceholder: 'sk-or-...', free: false },
+    gemini: { label: 'Google Gemini', keyUrl: 'https://aistudio.google.com/apikey', keyPlaceholder: 'AIza...', free: true },
+    groq: { label: 'Groq', keyUrl: 'https://console.groq.com/keys', keyPlaceholder: 'gsk_...', free: true },
+};
+
+const OPENROUTER_FREE_MODEL = 'google/gemma-4-31b-it:free';
+
+// One-click setups. "models" only lists values that differ from the stored ones.
+const PRESETS = [
+    {
+        id: 'free',
+        label: 'Free',
+        description: 'Gemini answers + Groq transcription. Two free keys, no card.',
+        answerProvider: 'gemini',
+        transcriptionProvider: 'groq',
+    },
+    {
+        id: 'openrouter-free',
+        label: 'OpenRouter free models',
+        description: 'Free :free models + Groq transcription. 50 answers/day (1,000 after a one-time $10 top-up).',
+        answerProvider: 'openrouter',
+        transcriptionProvider: 'groq',
+        models: { openrouterModel: OPENROUTER_FREE_MODEL, openrouterVisionModel: OPENROUTER_FREE_MODEL },
+    },
+    {
+        id: 'paid',
+        label: 'OpenRouter (paid)',
+        description: 'Fastest and most reliable. One key, pay per use.',
+        answerProvider: 'openrouter',
+        transcriptionProvider: 'openrouter',
+        models: { openrouterModel: 'google/gemini-3.8-flash', openrouterVisionModel: 'google/gemini-3.8-flash' },
+    },
+];
 
 const LOCAL_LLM_PRESETS = [
     { value: 'unsloth/Qwen3.5-0.8B-GGUF:Q4_K_M', label: 'Qwen 3.5 0.8B Q4 — 0.74 GB · Fastest' },
@@ -228,6 +267,47 @@ export class MainView extends LitElement {
             font-size: var(--font-size-xs);
             color: var(--danger, #ef4444);
             line-height: var(--line-height);
+        }
+
+        .preset-row {
+            display: flex;
+            gap: var(--space-xs);
+            flex-wrap: wrap;
+        }
+
+        .preset {
+            flex: 1;
+            min-width: 110px;
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            font-size: var(--font-size-xs);
+            font-family: var(--font);
+            cursor: pointer;
+        }
+
+        .preset:hover {
+            border-color: var(--text-muted);
+            color: var(--text-primary);
+        }
+
+        .preset.active {
+            border-color: var(--accent);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 1px var(--accent);
+        }
+
+        .free-badge {
+            margin-left: 6px;
+            padding: 1px 6px;
+            border-radius: 999px;
+            border: 1px solid var(--success-color, #4caf50);
+            color: var(--success-color, #4caf50);
+            font-size: 10px;
+            text-transform: none;
+            letter-spacing: 0;
         }
 
         .key-ok {
@@ -647,16 +727,16 @@ export class MainView extends LitElement {
         onCancelDownload: { type: Function },
         // Internal state
         _mode: { state: true },
-        _apiKey: { state: true },
-        _chatModel: { state: true },
-        _visionModel: { state: true },
-        _sttModel: { state: true },
+        _providers: { state: true },
+        _answerProvider: { state: true },
+        _sttProvider: { state: true },
+        _config: { state: true },
+        _keys: { state: true },
+        _keyStatus: { state: true },
+        _catalog: { state: true },
         _disableReasoning: { state: true },
         _keyError: { state: true },
         _errorMessage: { state: true },
-        _keyStatus: { state: true },
-        _chatModels: { state: true },
-        _sttModels: { state: true },
         // Local AI state
         _localLlmModel: { state: true },
         _useCustomLocalLlmModel: { state: true },
@@ -675,18 +755,18 @@ export class MainView extends LitElement {
         this.downloadProgress = { active: false, label: '', percentage: null };
         this.onCancelDownload = () => {};
 
-        this._mode = 'openrouter';
-        this._apiKey = '';
-        this._chatModel = DEFAULT_CHAT_MODEL;
-        this._visionModel = DEFAULT_CHAT_MODEL;
-        this._sttModel = DEFAULT_STT_MODEL;
+        this._mode = 'api';
+        this._providers = PROVIDER_FALLBACK;
+        this._answerProvider = 'openrouter';
+        this._sttProvider = 'openrouter';
+        this._config = {};
+        this._keys = { openrouter: '', gemini: '', groq: '' };
+        this._keyStatus = {};
+        this._catalog = {};
         this._disableReasoning = true;
         this._keyError = false;
         this._errorMessage = '';
-        this._keyStatus = null;
-        this._chatModels = [];
-        this._sttModels = [];
-        this._keyCheckTimer = null;
+        this._keyCheckTimers = {};
         this._showLocalHelp = false;
         this._localLlmModel = 'unsloth/Qwen3.5-4B-GGUF:Q4_K_M';
         this._useCustomLocalLlmModel = false;
@@ -703,21 +783,25 @@ export class MainView extends LitElement {
 
     async _loadFromStorage() {
         try {
-            const [config, prefs, apiKey] = await Promise.all([
+            const [config, prefs, providers, ...keys] = await Promise.all([
                 senpai.storage.getConfig(),
                 senpai.storage.getPreferences(),
-                senpai.storage.getOpenRouterApiKey().catch(() => ''),
+                senpai.ai.providers().catch(() => []),
+                ...Object.keys(PROVIDER_FALLBACK).map(id => senpai.storage.getProviderApiKey(id).catch(() => '')),
             ]);
 
-            this._mode = prefs.providerMode === 'local' ? 'local' : 'openrouter';
+            this._mode = prefs.providerMode === 'local' ? 'local' : 'api';
             if (prefs.providerMode !== this._mode) {
                 await senpai.storage.updatePreference('providerMode', this._mode);
             }
 
-            this._apiKey = apiKey || '';
-            this._chatModel = config.openrouterModel || DEFAULT_CHAT_MODEL;
-            this._visionModel = config.openrouterVisionModel || this._chatModel;
-            this._sttModel = config.openrouterTranscriptionModel || DEFAULT_STT_MODEL;
+            if (providers.length) {
+                this._providers = Object.fromEntries(providers.map(provider => [provider.id, provider]));
+            }
+            this._config = config;
+            this._answerProvider = config.answerProvider || 'openrouter';
+            this._sttProvider = config.transcriptionProvider || 'openrouter';
+            this._keys = Object.fromEntries(Object.keys(PROVIDER_FALLBACK).map((id, index) => [id, keys[index] || '']));
             this._disableReasoning = config.disableReasoning !== false;
 
             // Load local AI settings
@@ -726,40 +810,62 @@ export class MainView extends LitElement {
             this._whisperModel = prefs.whisperModel || 'tiny.en';
 
             this.requestUpdate();
-            this._loadModelCatalog();
-            if (this._apiKey) this._checkKey();
+            for (const provider of this._providersInUse()) {
+                this._loadCatalog(provider);
+                if (this._keys[provider]) this._checkKey(provider);
+            }
         } catch (e) {
             console.error('Error loading MainView storage:', e);
         }
     }
 
-    async _loadModelCatalog() {
+    _providersInUse() {
+        return [...new Set([this._answerProvider, this._sttProvider])];
+    }
+
+    _providerInfo(id) {
+        return this._providers[id] || PROVIDER_FALLBACK[id];
+    }
+
+    /** Stored model for a provider and role, or the provider's default. */
+    _model(provider, role) {
+        const field = MODEL_FIELDS[provider]?.[role];
+        const defaults = this._providerInfo(provider)?.defaults || {};
+        const fallback = role === 'transcription' ? defaults.transcriptionModel : defaults.chatModel;
+        return (field && this._config[field]) || (role === 'vision' ? this._model(provider, 'chat') : fallback) || '';
+    }
+
+    async _loadCatalog(provider) {
         try {
-            const [chatModels, sttModels] = await Promise.all([senpai.openrouter.listModels(), senpai.openrouter.listModels('transcription')]);
-            this._chatModels = chatModels.filter(model => model.inputModalities.includes('text'));
-            this._sttModels = sttModels;
+            const [chat, transcription] = await Promise.all([
+                this._providerInfo(provider).chat === false ? [] : senpai.ai.listModels(provider, 'chat'),
+                senpai.ai.listModels(provider, 'transcription'),
+            ]);
+            this._catalog = {
+                ...this._catalog,
+                [provider]: { chat: chat.filter(model => !model.inputModalities.length || model.inputModalities.includes('text')), transcription },
+            };
         } catch (e) {
-            console.warn('Could not load OpenRouter model catalog:', e);
+            console.warn(`Could not load ${provider} model catalog:`, e);
         }
     }
 
-    async _checkKey() {
-        if (!this._apiKey.trim()) {
-            this._keyStatus = null;
+    async _checkKey(provider) {
+        if (!this._keys[provider]?.trim()) {
+            this._keyStatus = { ...this._keyStatus, [provider]: null };
             return;
         }
-        this._keyStatus = { state: 'checking' };
-        const result = await senpai.openrouter.getKeyInfo();
-        if (result.success) {
-            const { limit_remaining: remaining, usage } = result.data || {};
-            const detail = Number.isFinite(remaining) ? `$${remaining.toFixed(2)} credit left` : `$${(usage || 0).toFixed(2)} used`;
-            this._keyStatus = { state: 'ok', text: `Key valid · ${detail}` };
-        } else {
-            this._keyStatus = { state: 'error', text: result.error || 'Invalid key' };
-        }
+        this._keyStatus = { ...this._keyStatus, [provider]: { state: 'checking' } };
+        const result = await senpai.ai.checkKey(provider);
+        const status = result.success
+            ? { state: 'ok', text: `Key valid${result.data?.detail ? ` · ${result.data.detail}` : ''}` }
+            : { state: 'error', text: result.error || 'Invalid key' };
+        this._keyStatus = { ...this._keyStatus, [provider]: status };
+        if (result.success && provider !== 'openrouter') this._loadCatalog(provider);
     }
 
-    _formatPrice(model) {
+    _formatModelOption(model) {
+        if (model.free) return ' — free';
         const perMillion = Number(model.pricing?.prompt) * 1e6;
         return Number.isFinite(perMillion) ? ` — $${perMillion.toFixed(2)}/M in` : '';
     }
@@ -905,18 +1011,64 @@ export class MainView extends LitElement {
         this.requestUpdate();
     }
 
-    async _saveApiKey(val) {
-        this._apiKey = val;
+    async _saveApiKey(provider, val) {
+        this._keys = { ...this._keys, [provider]: val };
         this._keyError = false;
         this._errorMessage = '';
-        await senpai.storage.setOpenRouterApiKey(val);
-        clearTimeout(this._keyCheckTimer);
-        this._keyCheckTimer = setTimeout(() => this._checkKey(), 600);
+        await senpai.storage.setProviderApiKey(provider, val);
+        clearTimeout(this._keyCheckTimers[provider]);
+        this._keyCheckTimers[provider] = setTimeout(() => this._checkKey(provider), 600);
     }
 
-    async _saveConfig(field, key, val) {
-        this[field] = val;
-        await senpai.storage.updateConfig(key, val);
+    async _saveConfigValue(key, value) {
+        this._config = { ...this._config, [key]: value };
+        await senpai.storage.updateConfig(key, value);
+    }
+
+    async _saveModel(provider, role, value) {
+        const field = MODEL_FIELDS[provider]?.[role];
+        if (field) await this._saveConfigValue(field, value);
+    }
+
+    async _setAnswerProvider(provider) {
+        this._answerProvider = provider;
+        await this._saveConfigValue('answerProvider', provider);
+        this._afterProviderChange();
+    }
+
+    async _setSttProvider(provider) {
+        this._sttProvider = provider;
+        await this._saveConfigValue('transcriptionProvider', provider);
+        this._afterProviderChange();
+    }
+
+    async _applyPreset(preset) {
+        this._answerProvider = preset.answerProvider;
+        this._sttProvider = preset.transcriptionProvider;
+        await this._saveConfigValue('answerProvider', preset.answerProvider);
+        await this._saveConfigValue('transcriptionProvider', preset.transcriptionProvider);
+        for (const [key, value] of Object.entries(preset.models || {})) {
+            await this._saveConfigValue(key, value);
+        }
+        this._afterProviderChange();
+    }
+
+    _afterProviderChange() {
+        this._keyError = false;
+        this._errorMessage = '';
+        for (const provider of this._providersInUse()) {
+            if (!this._catalog[provider]) this._loadCatalog(provider);
+            if (this._keys[provider] && !this._keyStatus[provider]) this._checkKey(provider);
+        }
+    }
+
+    _activePreset() {
+        return PRESETS.find(
+            preset =>
+                preset.answerProvider === this._answerProvider &&
+                preset.transcriptionProvider === this._sttProvider &&
+                Object.entries(preset.models || {}).every(([key, value]) => this._config[key] === value)
+        );
     }
 
     async _saveLocalLlmModel(val) {
@@ -963,9 +1115,10 @@ export class MainView extends LitElement {
     _handleStart() {
         if (this.isInitializing || this.downloadProgress.active) return;
 
-        if (this._mode === 'openrouter') {
-            if (!this._apiKey.trim()) {
-                this.triggerApiKeyError('Add your OpenRouter API key');
+        if (this._mode === 'api') {
+            const missing = this._providersInUse().find(provider => !this._keys[provider]?.trim());
+            if (missing) {
+                this.triggerApiKeyError(`Add your ${this._providerInfo(missing).label} API key`);
                 return;
             }
         } else if (this._mode === 'local') {
@@ -1084,7 +1237,7 @@ export class MainView extends LitElement {
         `;
     }
 
-    // ── OpenRouter mode ──
+    // ── API mode ──
 
     _renderConfigChevron() {
         return html`
@@ -1094,56 +1247,130 @@ export class MainView extends LitElement {
         `;
     }
 
-    _renderOpenRouterMode() {
-        const visionModels = this._chatModels.filter(model => model.inputModalities.includes('image'));
-        const status = this._keyStatus;
+    _renderKeyField(provider) {
+        const info = this._providerInfo(provider);
+        const status = this._keyStatus[provider];
+        const roles = [provider === this._answerProvider ? 'answers' : '', provider === this._sttProvider ? 'transcription' : '']
+            .filter(Boolean)
+            .join(' + ');
+        return html`
+            <div class="form-group">
+                <label class="form-label">${info.label} API key ${info.free ? html`<span class="free-badge">free tier</span>` : ''}</label>
+                <input
+                    type="password"
+                    placeholder=${info.keyPlaceholder || ''}
+                    .value=${this._keys[provider] || ''}
+                    @input=${e => this._saveApiKey(provider, e.target.value.trim())}
+                    class=${this._keyError && !this._keys[provider] ? 'error' : ''}
+                />
+                <div class="form-hint">
+                    Used for ${roles} · ${status?.state === 'checking' ? 'Checking key… · ' : ''}
+                    ${status?.state === 'ok' ? html`<span class="key-ok">${status.text}</span> · ` : ''}
+                    ${status?.state === 'error' ? html`<span class="key-error">${status.text}</span> · ` : ''}
+                    <span class="link" @click=${() => this.onExternalLink(info.keyUrl)}>Get a ${info.free ? 'free ' : ''}${info.label} key</span>
+                </div>
+            </div>
+        `;
+    }
+
+    _renderProviderSelect(value, roleProviders, onChange) {
+        return html`
+            <select .value=${value} @change=${e => onChange(e.target.value)}>
+                ${roleProviders.map(
+                    id =>
+                        html`<option value=${id} ?selected=${id === value}>
+                            ${this._providerInfo(id).label}${this._providerInfo(id).free ? ' (free tier)' : ''}
+                        </option>`
+                )}
+            </select>
+        `;
+    }
+
+    _renderApiMode() {
+        const answer = this._answerProvider;
+        const stt = this._sttProvider;
+        const chatCatalog = this._catalog[answer]?.chat || [];
+        const visionCatalog = chatCatalog.filter(model => !model.inputModalities.length || model.inputModalities.includes('image'));
+        const sttCatalog = this._catalog[stt]?.transcription || [];
+        const activePreset = this._activePreset();
+        const usesOpenRouterFree = answer === 'openrouter' && /:free$/.test(this._model('openrouter', 'chat'));
 
         return html`
             <div class="form-group">
-                <label class="form-label">OpenRouter API Key</label>
-                <input
-                    type="password"
-                    placeholder="sk-or-..."
-                    .value=${this._apiKey}
-                    @input=${e => this._saveApiKey(e.target.value.trim())}
-                    class=${this._keyError ? 'error' : ''}
-                />
-                <div class="form-hint">
-                    ${status?.state === 'checking' ? 'Checking key… · ' : ''}
-                    ${status?.state === 'ok' ? html`<span class="key-ok">${status.text}</span> · ` : ''}
-                    ${status?.state === 'error' ? html`<span class="key-error">${status.text}</span> · ` : ''}
-                    <span class="link" @click=${() => this.onExternalLink('https://openrouter.ai/keys')}>Get an OpenRouter key</span>
+                <label class="form-label">Quick setup</label>
+                <div class="preset-row">
+                    ${PRESETS.map(
+                        preset => html`
+                            <button
+                                class="preset ${activePreset?.id === preset.id ? 'active' : ''}"
+                                @click=${() => this._applyPreset(preset)}
+                                title=${preset.description}
+                            >
+                                ${preset.label}
+                            </button>
+                        `
+                    )}
                 </div>
-                ${this._errorMessage && this._errorMessage !== status?.text ? html`<div class="form-error">${this._errorMessage}</div>` : ''}
+                <div class="form-hint">${activePreset ? activePreset.description : 'Custom setup'}</div>
             </div>
 
+            ${this._providersInUse().map(provider => this._renderKeyField(provider))}
+            ${
+                this._errorMessage && !Object.values(this._keyStatus).some(status => status?.text === this._errorMessage)
+                    ? html`<div class="form-error">${this._errorMessage}</div>`
+                    : ''
+            }
+            ${
+                usesOpenRouterFree
+                    ? html`<div class="config-note">
+                          Free OpenRouter models allow 20 requests/minute and 50/day (1,000/day once you have bought $10 of credits). Busy models fall
+                          back to other free models automatically. Some free providers may log prompts; check your OpenRouter privacy settings.
+                      </div>`
+                    : ''
+            }
+            ${
+                answer === 'gemini' || stt === 'gemini'
+                    ? html`<div class="config-note">
+                          Gemini's free tier has per-minute and per-day limits shown in Google AI Studio, and Google may use free-tier content to
+                          improve its products.
+                      </div>`
+                    : ''
+            }
+
             <datalist id="chat-models">
-                ${this._chatModels.map(model => html`<option value=${model.id}>${model.name}${this._formatPrice(model)}</option>`)}
+                ${chatCatalog.map(model => html`<option value=${model.id}>${model.name}${this._formatModelOption(model)}</option>`)}
             </datalist>
             <datalist id="vision-models">
-                ${visionModels.map(model => html`<option value=${model.id}>${model.name}${this._formatPrice(model)}</option>`)}
+                ${visionCatalog.map(model => html`<option value=${model.id}>${model.name}${this._formatModelOption(model)}</option>`)}
             </datalist>
-            <datalist id="stt-models">${this._sttModels.map(model => html`<option value=${model.id}>${model.name}</option>`)}</datalist>
+            <datalist id="stt-models">${sttCatalog.map(model => html`<option value=${model.id}>${model.name}</option>`)}</datalist>
 
             <details class="config-section">
                 <summary class="config-summary">
                     <span class="config-summary-text">
                         <span class="config-summary-title">AI responses</span>
-                        <span class="config-summary-description">${this._chatModel}</span>
+                        <span class="config-summary-description">${this._providerInfo(answer).label} · ${this._model(answer, 'chat')}</span>
                     </span>
                     ${this._renderConfigChevron()}
                 </summary>
                 <div class="config-content">
                     <div class="form-group">
+                        <label class="form-label">Provider</label>
+                        ${this._renderProviderSelect(answer, ['openrouter', 'gemini'], provider => this._setAnswerProvider(provider))}
+                    </div>
+
+                    <div class="form-group">
                         <label class="form-label">Answer model</label>
                         <input
                             type="text"
                             list="chat-models"
-                            placeholder=${DEFAULT_CHAT_MODEL}
-                            .value=${this._chatModel}
-                            @change=${e => this._saveConfig('_chatModel', 'openrouterModel', e.target.value.trim() || DEFAULT_CHAT_MODEL)}
+                            .value=${this._model(answer, 'chat')}
+                            @change=${e => this._saveModel(answer, 'chat', e.target.value.trim())}
                         />
-                        <div class="form-hint">Used for spoken questions and typed messages. Any model id from openrouter.ai/models.</div>
+                        <div class="form-hint">
+                            Used for spoken questions and typed messages.
+                            ${answer === 'openrouter' ? 'Models ending in :free cost nothing.' : 'Pick from the list once your key is saved.'}
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -1151,9 +1378,8 @@ export class MainView extends LitElement {
                         <input
                             type="text"
                             list="vision-models"
-                            placeholder=${DEFAULT_CHAT_MODEL}
-                            .value=${this._visionModel}
-                            @change=${e => this._saveConfig('_visionModel', 'openrouterVisionModel', e.target.value.trim() || this._chatModel)}
+                            .value=${this._model(answer, 'vision')}
+                            @change=${e => this._saveModel(answer, 'vision', e.target.value.trim())}
                         />
                         <div class="form-hint">Must accept image input.</div>
                     </div>
@@ -1162,7 +1388,10 @@ export class MainView extends LitElement {
                         <input
                             type="checkbox"
                             .checked=${this._disableReasoning}
-                            @change=${e => this._saveConfig('_disableReasoning', 'disableReasoning', e.target.checked)}
+                            @change=${e => {
+                                this._disableReasoning = e.target.checked;
+                                this._saveConfigValue('disableReasoning', e.target.checked);
+                            }}
                         />
                         <span class="config-checkbox-text">
                             <span class="config-summary-title">Disable thinking</span>
@@ -1176,19 +1405,22 @@ export class MainView extends LitElement {
                 <summary class="config-summary">
                     <span class="config-summary-text">
                         <span class="config-summary-title">Transcription</span>
-                        <span class="config-summary-description">${this._sttModel}</span>
+                        <span class="config-summary-description">${this._providerInfo(stt).label} · ${this._model(stt, 'transcription')}</span>
                     </span>
                     ${this._renderConfigChevron()}
                 </summary>
                 <div class="config-content">
                     <div class="form-group">
+                        <label class="form-label">Provider</label>
+                        ${this._renderProviderSelect(stt, ['groq', 'gemini', 'openrouter'], provider => this._setSttProvider(provider))}
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Speech-to-text model</label>
                         <input
                             type="text"
                             list="stt-models"
-                            placeholder=${DEFAULT_STT_MODEL}
-                            .value=${this._sttModel}
-                            @change=${e => this._saveConfig('_sttModel', 'openrouterTranscriptionModel', e.target.value.trim() || DEFAULT_STT_MODEL)}
+                            .value=${this._model(stt, 'transcription')}
+                            @change=${e => this._saveModel(stt, 'transcription', e.target.value.trim())}
                         />
                         <div class="form-hint">Speech is detected locally, then each utterance is sent to this model.</div>
                     </div>
@@ -1269,7 +1501,7 @@ export class MainView extends LitElement {
             ${this._renderStartButton()} ${this._renderDivider()}
 
             <div class="mode-links">
-                <button class="mode-link" @click=${() => this._saveMode('openrouter')}>Use OpenRouter</button>
+                <button class="mode-link" @click=${() => this._saveMode('api')}>Use cloud APIs</button>
             </div>
         `;
     }
@@ -1297,13 +1529,13 @@ export class MainView extends LitElement {
                                   <button class="help-btn" @click=${this._openLocalHelp} aria-label="Open Local AI help">${helpIcon}</button>
                               </div>
                           `
-                        : html` <div class="page-title">Senpai <span class="mode-suffix">OpenRouter</span></div> `
+                        : html` <div class="page-title">Senpai <span class="mode-suffix">Cloud</span></div> `
                 }
                 <div class="page-subtitle">
-                    ${this._mode === 'openrouter' ? 'Any model on OpenRouter, one API key' : 'Run models locally on your machine'}
+                    ${this._mode === 'api' ? 'Hosted models through free or paid API keys' : 'Run models locally on your machine'}
                 </div>
 
-                ${this._mode === 'openrouter' ? this._renderOpenRouterMode() : ''} ${this._mode === 'local' ? this._renderLocalMode() : ''}
+                ${this._mode === 'api' ? this._renderApiMode() : ''} ${this._mode === 'local' ? this._renderLocalMode() : ''}
             </div>
             ${this._mode === 'local' && this._showLocalHelp ? this._renderLocalHelp(closeIcon) : ''}
         `;
@@ -1357,7 +1589,7 @@ export class MainView extends LitElement {
                             <div class="help-section-title">Computer hanging or slow?</div>
                             <div class="help-section-text">
                                 Running models locally uses a lot of RAM and CPU. If your computer slows down or freezes, it's likely the LLM. Switch
-                                back to OpenRouter mode if you want to use a hosted model instead.
+                                back to cloud APIs if you want to use a hosted model instead (free options are available).
                             </div>
                         </div>
 
@@ -1365,10 +1597,10 @@ export class MainView extends LitElement {
                             class="help-switch-btn"
                             @click=${() => {
                                 this._closeLocalHelp();
-                                this._saveMode('openrouter');
+                                this._saveMode('api');
                             }}
                         >
-                            Switch to OpenRouter
+                            Switch to cloud APIs
                         </button>
                     </div>
                 </section>

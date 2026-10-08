@@ -9,15 +9,31 @@ const DEFAULT_CONFIG = {
     configVersion: CONFIG_VERSION,
     onboarded: false,
     layout: 'normal',
+    // Which provider handles answers ('openrouter' | 'gemini') and transcription ('openrouter' | 'groq' | 'gemini').
+    answerProvider: 'openrouter',
+    transcriptionProvider: 'openrouter',
     // Any OpenRouter model id works here, see https://openrouter.ai/models
     openrouterModel: 'google/gemini-3.8-flash',
     openrouterVisionModel: 'google/gemini-3.8-flash',
     openrouterTranscriptionModel: 'openai/whisper-large-v3-turbo',
+    // Google Gemini API (free tier) and Groq (free tier)
+    geminiModel: 'gemini-3.8-flash',
+    geminiVisionModel: 'gemini-3.8-flash',
+    geminiTranscriptionModel: 'gemini-3.8-flash',
+    groqTranscriptionModel: 'whisper-large-v3-turbo',
     disableReasoning: true,
 };
 
 const DEFAULT_CREDENTIALS = {
     openrouterApiKey: '',
+    geminiApiKey: '',
+    groqApiKey: '',
+};
+
+const PROVIDER_KEY_FIELDS = {
+    openrouter: 'openrouterApiKey',
+    gemini: 'geminiApiKey',
+    groq: 'groqApiKey',
 };
 
 const DEFAULT_PREFERENCES = {
@@ -193,6 +209,18 @@ function setOpenRouterApiKey(openrouterApiKey) {
     return setCredentials({ openrouterApiKey });
 }
 
+function getProviderApiKey(provider) {
+    const field = PROVIDER_KEY_FIELDS[provider];
+    if (!field) throw new Error(`Unknown provider: ${provider}`);
+    return (getCredentials()[field] || '').trim();
+}
+
+function setProviderApiKey(provider, apiKey) {
+    const field = PROVIDER_KEY_FIELDS[provider];
+    if (!field) throw new Error(`Unknown provider: ${provider}`);
+    return setCredentials({ [field]: typeof apiKey === 'string' ? apiKey.trim() : '' });
+}
+
 // ============ PREFERENCES ============
 
 function getPreferences() {
@@ -353,6 +381,8 @@ module.exports = {
     setCredentials,
     getOpenRouterApiKey,
     setOpenRouterApiKey,
+    getProviderApiKey,
+    setProviderApiKey,
 
     // Preferences
     getPreferences,
