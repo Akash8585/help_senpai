@@ -1,8 +1,8 @@
 {
     "name": "senpai",
-    "productName": "Senpai",
-    "version": "0.1.5",
-    "description": "Real-time AI assistant for calls, interviews and meetings, powered by any model on OpenRouter",
+    "productName": "Help Senpai",
+    "version": "0.1.6",
+    "description": "Help Senpai: real-time AI copilot for interviews, meetings and practice, powered by OpenRouter, Gemini or Groq",
     "main": "src/index.js",
     "scripts": {
         "start": "electron-forge start",
@@ -19,7 +19,7 @@
         "screen assistant"
     ],
     "author": {
-        "name": "Senpai contributors"
+        "name": "Help Senpai contributors"
     },
     "license": "GPL-3.0",
     "dependencies": {

@@ -174,6 +174,14 @@ export class HelpView extends LitElement {
                     <section class="surface">
                         <div class="surface-title">About</div>
                         <div class="link-row">
+                            <button class="link-button" @click=${() => this._open('https://help-senpai.vercel.app/')}>Website</button>
+                            <button class="link-button" @click=${() => this._open('https://help-senpai.vercel.app/privacy')}>Privacy Policy</button>
+                            <button class="link-button" @click=${() => this._open('https://help-senpai.vercel.app/terms')}>
+                                Terms and Conditions
+                            </button>
+                            <button class="link-button" @click=${() => this._open('https://github.com/Akash8585/help_senpai/releases')}>
+                                Release notes
+                            </button>
                             <button class="link-button" @click=${() => this._open('https://github.com/sohzm/cheating-daddy')}>
                                 Based on cheating-daddy (GPL-3.0)
                             </button>

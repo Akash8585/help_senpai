@@ -1525,11 +1525,11 @@ export class MainView extends LitElement {
                     this._mode === 'local'
                         ? html`
                               <div class="title-row">
-                                  <div class="page-title">Senpai <span class="mode-suffix">Local AI</span></div>
+                                  <div class="page-title">Help Senpai <span class="mode-suffix">Local AI</span></div>
                                   <button class="help-btn" @click=${this._openLocalHelp} aria-label="Open Local AI help">${helpIcon}</button>
                               </div>
                           `
-                        : html` <div class="page-title">Senpai <span class="mode-suffix">Cloud</span></div> `
+                        : html` <div class="page-title">Help Senpai <span class="mode-suffix">Cloud</span></div> `
                 }
                 <div class="page-subtitle">
                     ${this._mode === 'api' ? 'Hosted models through free or paid API keys' : 'Run models locally on your machine'}
@@ -1554,8 +1554,8 @@ export class MainView extends LitElement {
                         <div class="help-section">
                             <div class="help-section-title">Native local AI</div>
                             <div class="help-section-text">
-                                Senpai runs llama.cpp and whisper.cpp directly. Everything stays on your computer — no external AI service or Ollama
-                                installation is required.
+                                Help Senpai runs llama.cpp and whisper.cpp directly. Everything stays on your computer — no external AI service or
+                                Ollama installation is required.
                             </div>
                         </div>
 
@@ -1563,7 +1563,7 @@ export class MainView extends LitElement {
                             <div class="help-section-title">Automatic setup</div>
                             <div class="help-section-text">
                                 The correct native runners, selected Whisper model, and language model are downloaded and checksum-verified on first
-                                use. They are stored in the Senpai config directory.
+                                use. They are stored in the Help Senpai config directory.
                             </div>
                         </div>
 

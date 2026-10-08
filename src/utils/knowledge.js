@@ -475,7 +475,7 @@ async function githubRequest(apiPath) {
     const response = await fetch(`https://api.github.com${apiPath}`, {
         headers: {
             Accept: 'application/vnd.github+json',
-            'User-Agent': 'Senpai',
+            'User-Agent': 'HelpSenpai',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
     });
@@ -497,7 +497,7 @@ async function fetchRaw({ owner, repo, ref, filePath }) {
     const token = getCredentials().githubToken;
     const encodedPath = filePath.split('/').map(encodeURIComponent).join('/');
     const response = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/${encodeURIComponent(ref)}/${encodedPath}`, {
-        headers: { 'User-Agent': 'Senpai', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        headers: { 'User-Agent': 'HelpSenpai', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return response.text();

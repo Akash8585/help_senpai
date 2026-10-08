@@ -5,7 +5,6 @@ import { HelpView } from '../views/HelpView.js';
 import { HistoryView } from '../views/HistoryView.js';
 import { AssistantView } from '../views/AssistantView.js';
 import { OnboardingView } from '../views/OnboardingView.js';
-import { AICustomizeView } from '../views/AICustomizeView.js';
 import { ContextView } from '../views/ContextView.js';
 import { NotesView } from '../views/NotesView.js';
 import '../views/NotesPanel.js';
@@ -209,6 +208,58 @@ export class SenpaiApp extends LitElement {
             font-size: var(--font-size-xs);
             color: var(--text-muted);
             padding: var(--space-xs) var(--space-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-xs);
+        }
+
+        .update-link {
+            background: none;
+            border: none;
+            padding: 0;
+            font: inherit;
+            color: var(--text-muted);
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .update-link:hover {
+            color: var(--text-primary);
+        }
+
+        .update-link:disabled {
+            cursor: default;
+            text-decoration: none;
+        }
+
+        .update-card {
+            margin: 0 var(--space-sm) var(--space-sm);
+            padding: var(--space-sm);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-elevated, var(--bg-surface));
+            font-size: var(--font-size-xs);
+            line-height: 1.4;
+            color: var(--text-primary);
+        }
+
+        .update-card button:hover {
+            background: var(--btn-primary-hover, var(--accent-hover));
+        }
+
+        .update-card button {
+            margin-top: var(--space-xs);
+            width: 100%;
+            padding: 6px var(--space-sm);
+            border-radius: var(--radius-sm);
+            border: none;
+            background: var(--btn-primary-bg, var(--accent));
+            color: var(--btn-primary-text, #fff);
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
         }
 
         /* ── Main content area ── */
@@ -378,6 +429,7 @@ export class SenpaiApp extends LitElement {
         _storageLoaded: { state: true },
         _sessionCost: { state: true },
         _shortcutConflicts: { state: true },
+        _update: { state: true },
         _notesPanelOpen: { state: true },
         _whisperDownloading: { state: true },
         _localAiDownloadProgress: { state: true },
@@ -410,9 +462,12 @@ export class SenpaiApp extends LitElement {
         this._whisperDownloading = false;
         this._localAiDownloadProgress = { active: false, label: '', percentage: null };
         this._localVersion = '';
+        this._update = { status: 'idle' };
+        this._stopUpdateListener = null;
 
         this._loadFromStorage();
         this._loadVersion();
+        this._loadUpdateState();
     }
 
     async _loadVersion() {
@@ -424,12 +479,54 @@ export class SenpaiApp extends LitElement {
         }
     }
 
+    async _loadUpdateState() {
+        try {
+            this._update = await senpai.updates.get();
+        } catch (e) {
+            // updates are optional
+        }
+    }
+
+    _checkForUpdates() {
+        senpai.updates
+            .check()
+            .then(state => (this._update = state))
+            .catch(() => {});
+    }
+
+    _installUpdate() {
+        if (this.sessionActive && !confirm('Restarting will end the current session. Update now?')) return;
+        senpai.updates.install();
+    }
+
+    _renderUpdateStatus() {
+        const { status, error } = this._update || {};
+        if (status === 'unsupported') return '';
+        const labels = {
+            checking: 'Checking…',
+            downloading: 'Downloading update…',
+            ready: 'Update ready',
+            'up-to-date': 'Up to date',
+            error: 'Retry update check',
+        };
+        const busy = ['checking', 'downloading', 'ready'].includes(status);
+        return html`<button
+            class="update-link"
+            ?disabled=${busy}
+            title=${status === 'error' ? `Update check failed: ${error || 'unknown error'}` : 'Check for updates'}
+            @click=${() => this._checkForUpdates()}
+        >
+            ${labels[status] || 'Check for updates'}
+        </button>`;
+    }
+
     async _loadFromStorage() {
         try {
             const [config, prefs] = await Promise.all([senpai.storage.getConfig(), senpai.storage.getPreferences()]);
 
             this.currentView = config.onboarded ? 'main' : 'onboarding';
-            this.selectedProfile = prefs.selectedProfile || 'interview';
+            // The profile picker was removed with the AI Customization page; every session is an interview.
+            this.selectedProfile = 'interview';
             this.selectedLanguage = prefs.selectedLanguage || 'en-US';
             this.selectedScreenshotInterval = prefs.selectedScreenshotInterval || '5';
             this.selectedImageQuality = prefs.selectedImageQuality || 'medium';
@@ -469,11 +566,13 @@ export class SenpaiApp extends LitElement {
                 this._localAiDownloadProgress = progress;
             });
         }
+        this._stopUpdateListener = senpai.updates?.onChange(state => (this._update = state)) || null;
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         this._stopTimer();
+        if (this._stopUpdateListener) this._stopUpdateListener();
         if (window.require) {
             const { ipcRenderer } = window.require('electron');
             ipcRenderer.removeAllListeners('new-response');
@@ -720,14 +819,6 @@ export class SenpaiApp extends LitElement {
             case 'context':
                 return html`<context-view></context-view>`;
 
-            case 'ai-customize':
-                return html`
-                    <ai-customize-view
-                        .selectedProfile=${this.selectedProfile}
-                        .onProfileChange=${p => this.handleProfileChange(p)}
-                    ></ai-customize-view>
-                `;
-
             case 'customize':
                 return html`
                     <customize-view
@@ -794,20 +885,6 @@ export class SenpaiApp extends LitElement {
                 </svg>`,
             },
             {
-                id: 'ai-customize',
-                label: 'AI Customization',
-                icon: html`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
-                    <path
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M13 3v7h6l-8 11v-7H5z"
-                    />
-                </svg>`,
-            },
-            {
                 id: 'notes',
                 label: 'Notes',
                 icon: html`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
@@ -867,7 +944,7 @@ export class SenpaiApp extends LitElement {
             <div class="sidebar ${this._isLiveMode() ? 'hidden' : ''}">
                 <div class="sidebar-brand">
                     <img src="assets/logo-small.svg" alt="" />
-                    <h1>Senpai</h1>
+                    <h1>Help Senpai</h1>
                 </div>
                 <nav class="sidebar-nav">
                     ${items.map(
@@ -891,13 +968,22 @@ export class SenpaiApp extends LitElement {
                               >
                                   ${
                                       this._shortcutConflicts.length > 3
-                                          ? `${this._shortcutConflicts.length} shortcuts are taken, usually by another running copy of Senpai. Close it and restart this one.`
+                                          ? `${this._shortcutConflicts.length} shortcuts are taken, usually by another running copy of Help Senpai. Close it and restart this one.`
                                           : `Shortcut in use by another app: ${this._shortcutConflicts.join(', ')}. Change it in Settings.`
                                   }
                               </div>`
                             : ''
                     }
-                    <div class="version-text">v${this._localVersion}</div>
+                    ${
+                        this._update?.status === 'ready'
+                            ? html`<div class="update-card">
+                                  A new version${this._update.newVersion ? ` (${this._update.newVersion})` : ''} of Help Senpai is ready. Your notes
+                                  and settings are kept.
+                                  <button @click=${() => this._installUpdate()}>Restart to update</button>
+                              </div>`
+                            : ''
+                    }
+                    <div class="version-text"><span>v${this._localVersion}</span>${this._renderUpdateStatus()}</div>
                 </div>
             </div>
         `;

@@ -4,7 +4,7 @@
 //   - Groq: free tier; Whisper speech-to-text
 // Docs: openrouter.ai/docs, ai.google.dev/gemini-api/docs/openai, console.groq.com/docs/speech-to-text
 
-const APP_TITLE = 'Senpai';
+const APP_TITLE = 'Help Senpai';
 // Optional app attribution shown on openrouter.ai. Set to your repo/site to enable it.
 const APP_URL = '';
 

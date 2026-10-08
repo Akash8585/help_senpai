@@ -183,6 +183,18 @@ const notes = {
     },
 };
 
+// App updates (Windows installer builds). state.status: idle | checking | downloading | ready | up-to-date | error | unsupported
+const updates = {
+    get: () => ipcRenderer.invoke('update:get'),
+    check: () => ipcRenderer.invoke('update:check'),
+    install: () => ipcRenderer.invoke('update:install'),
+    onChange: callback => {
+        const listener = (_, state) => callback(state);
+        ipcRenderer.on('update-state', listener);
+        return () => ipcRenderer.removeListener('update-state', listener);
+    },
+};
+
 // AI providers (OpenRouter, Google Gemini, Groq). Requests run in the main process.
 const ai = {
     async providers() {
@@ -1117,6 +1129,7 @@ const senpai = {
     ai,
     knowledge,
     notes,
+    updates,
     cancelLocalInitialization,
     startCapture,
     stopCapture,

@@ -157,17 +157,24 @@ function resetConfigDir() {
     console.log('Config directory initialized with defaults');
 }
 
-// Initialize storage - call this on app startup
+// Initialize storage - call this on app startup.
+// Never deletes user data: a first run creates defaults, and a settings-version change (e.g. after an
+// auto-update) upgrades config.json in place. Notes, context, keys and history are left untouched.
+// Only "Clear all data" / emergency erase (clearAllData) wipe the folder.
 function initializeStorage() {
-    if (needsReset()) {
-        resetConfigDir();
-    } else {
-        // Ensure history directory exists
-        const historyDir = getHistoryDir();
-        if (!fs.existsSync(historyDir)) {
-            fs.mkdirSync(historyDir, { recursive: true });
-        }
+    const configDir = getConfigDir();
+    fs.mkdirSync(getHistoryDir(), { recursive: true });
+
+    if (!fs.existsSync(getConfigPath())) {
+        writeJsonFile(getConfigPath(), DEFAULT_CONFIG);
+    } else if (needsReset()) {
+        console.log('Upgrading settings to version', CONFIG_VERSION);
+        const saved = readJsonFile(getConfigPath(), {});
+        writeJsonFile(getConfigPath(), { ...DEFAULT_CONFIG, ...(saved && typeof saved === 'object' ? saved : {}), configVersion: CONFIG_VERSION });
     }
+    if (!fs.existsSync(getCredentialsPath())) writeJsonFile(getCredentialsPath(), DEFAULT_CREDENTIALS);
+    if (!fs.existsSync(getPreferencesPath())) writeJsonFile(getPreferencesPath(), DEFAULT_PREFERENCES);
+    return configDir;
 }
 
 // ============ CONFIG ============

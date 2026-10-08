@@ -385,7 +385,7 @@ export class OnboardingView extends LitElement {
             return html`
                 <div class="slide">
                     <img src="assets/logo.svg" alt="" style="width: 88px; height: 88px; margin-bottom: 8px;" />
-                    <div class="slide-title">Senpai</div>
+                    <div class="slide-title">Help Senpai</div>
                     <div class="slide-text">Real-time AI that listens, watches, and helps during interviews, meetings, and exams.</div>
                     <div class="actions">
                         <button

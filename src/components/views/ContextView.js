@@ -270,6 +270,7 @@ export class ContextView extends LitElement {
         _errors: { state: true },
         _previews: { state: true },
         _instructions: { state: true },
+        _customPrompt: { state: true },
         _githubToken: { state: true },
         _showToken: { state: true },
     };
@@ -286,6 +287,8 @@ export class ContextView extends LitElement {
         this._githubToken = '';
         this._showToken = false;
         this._instructionsTimer = null;
+        this._customPrompt = '';
+        this._customPromptTimer = null;
     }
 
     connectedCallback() {
@@ -297,12 +300,20 @@ export class ContextView extends LitElement {
                 this._instructions = result.data.repoInstructions;
             }
         });
+        senpai.storage
+            .getPreferences()
+            .then(prefs => (this._customPrompt = prefs.customPrompt || ''))
+            .catch(() => {});
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         this._unsubscribe?.();
         clearTimeout(this._instructionsTimer);
+        if (this._customPromptTimer) {
+            clearTimeout(this._customPromptTimer);
+            senpai.storage.updatePreference('customPrompt', this._customPrompt);
+        }
     }
 
     _applySummary(summary) {
@@ -384,6 +395,15 @@ export class ContextView extends LitElement {
         this._instructions = value;
         clearTimeout(this._instructionsTimer);
         this._instructionsTimer = setTimeout(() => senpai.knowledge.setRepoInstructions(value), 400);
+    }
+
+    _saveCustomPrompt(value) {
+        this._customPrompt = value;
+        clearTimeout(this._customPromptTimer);
+        this._customPromptTimer = setTimeout(() => {
+            this._customPromptTimer = null;
+            senpai.storage.updatePreference('customPrompt', value);
+        }, 400);
     }
 
     async _saveToken() {
@@ -500,7 +520,7 @@ export class ContextView extends LitElement {
     _renderRepoExtras() {
         return html`
             <div class="subsection">
-                <label class="label">What should Senpai do with these repos?</label>
+                <label class="label">What should Help Senpai do with these repos?</label>
                 <textarea
                     class="control"
                     placeholder="e.g. This is my take-home for Acme. The interviewer will ask me to walk through the architecture, justify the database choice, and live-code pagination for GET /orders. Help me explain decisions and write the extension in the same style."
@@ -554,8 +574,8 @@ export class ContextView extends LitElement {
                     <div>
                         <div class="page-title">Context</div>
                         <div class="page-subtitle">
-                            Add your resume, portfolio, repos and the company assignment. Senpai answers questions about them, along with coding, DSA
-                            and system design questions.
+                            Add your resume, portfolio, repos and the company assignment. Help Senpai answers questions about them, along with coding,
+                            DSA and system design questions.
                         </div>
                     </div>
 
@@ -569,6 +589,19 @@ export class ContextView extends LitElement {
                             ${loading ? html` · <span class="muted">${loading} still loading</span>` : ''}
                         </span>
                         <span class="form-help">Applies to the next session you start.</span>
+                    </section>
+
+                    <section class="surface">
+                        <div class="surface-title">Instructions</div>
+                        <div class="surface-subtitle">
+                            The role, company and interview format, plus anything else Help Senpai should keep in mind.
+                        </div>
+                        <textarea
+                            class="control"
+                            placeholder="e.g. Backend engineer interview at Acme, 45 minutes: 20 min system design, then a live coding round in Python. Keep answers short."
+                            .value=${this._customPrompt}
+                            @input=${e => this._saveCustomPrompt(e.target.value)}
+                        ></textarea>
                     </section>
 
                     ${SECTIONS.map(section => this._renderSection(section))}

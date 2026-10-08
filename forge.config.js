@@ -5,7 +5,8 @@ module.exports = {
     packagerConfig: {
         asar: true,
         extraResource: ['./src/assets/SystemAudioDump'],
-        name: 'Senpai',
+        name: 'Help Senpai',
+        executableName: 'HelpSenpai',
         icon: 'src/assets/logo',
         // use `security find-identity -v -p codesigning` to find your identity
         // for macos signing
@@ -29,9 +30,14 @@ module.exports = {
         {
             name: '@electron-forge/maker-squirrel',
             config: {
+                // Keep the Squirrel id "senpai" so installs and updates stay in the same folder.
                 name: 'senpai',
-                productName: 'Senpai',
-                shortcutName: 'Senpai',
+                title: 'Help Senpai',
+                exe: 'HelpSenpai.exe',
+                setupExe: 'Help-Senpai-Setup.exe',
+                setupIcon: 'src/assets/logo.ico',
+                productName: 'Help Senpai',
+                shortcutName: 'Help Senpai',
                 createDesktopShortcut: true,
                 createStartMenuShortcut: true,
             },
@@ -45,8 +51,8 @@ module.exports = {
             platforms: ['linux'],
             config: {
                 options: {
-                    name: 'Senpai',
-                    productName: 'Senpai',
+                    name: 'Help Senpai',
+                    productName: 'Help Senpai',
                     genericName: 'AI Assistant',
                     description: 'Real-time AI assistant powered by OpenRouter',
                     categories: ['Development', 'Education'],

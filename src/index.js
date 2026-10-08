@@ -7,6 +7,7 @@ const { createWindow, updateGlobalShortcuts } = require('./utils/window');
 const { setupSessionIpcHandlers, stopMacOSAudioCapture, closeActiveSession, sendToRenderer, setMainWindow } = require('./utils/session');
 const { setupKnowledgeIpcHandlers, resetKnowledgeCache } = require('./utils/knowledge');
 const { setupNotesIpcHandlers, resetNotesCache } = require('./utils/notes');
+const { setupUpdater } = require('./utils/updater');
 const storage = require('./storage');
 
 // Only one Senpai may run: global shortcuts belong to whichever copy registered them first, and the
@@ -44,6 +45,7 @@ app.whenReady().then(async () => {
     setupSessionIpcHandlers();
     setupKnowledgeIpcHandlers(sendToRenderer);
     setupNotesIpcHandlers(sendToRenderer);
+    setupUpdater(sendToRenderer);
     setupStorageIpcHandlers();
     setupGeneralIpcHandlers();
 });
@@ -284,6 +286,7 @@ function setupGeneralIpcHandlers() {
 
     ipcMain.handle('open-external', async (event, url) => {
         try {
+            if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) throw new Error('Only http(s) links can be opened');
             await shell.openExternal(url);
             return { success: true };
         } catch (error) {
