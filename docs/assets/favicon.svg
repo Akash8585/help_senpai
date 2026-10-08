@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+    <!-- Simplified variant of logo.svg for 16-32px: full-bleed tile, larger bubble, one bold sparkle. -->
+    <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#7C6CFF" />
+            <stop offset="0.55" stop-color="#5B5BF0" />
+            <stop offset="1" stop-color="#2F6BEB" />
+        </linearGradient>
+        <radialGradient id="glowPink" cx="0.9" cy="0.08" r="0.55">
+            <stop offset="0" stop-color="#F59AD8" stop-opacity="0.75" />
+            <stop offset="1" stop-color="#F59AD8" stop-opacity="0" />
+        </radialGradient>
+    </defs>
+
+    <rect x="0" y="0" width="1024" height="1024" rx="210" fill="url(#bg)" />
+    <rect x="0" y="0" width="1024" height="1024" rx="210" fill="url(#glowPink)" />
+
+    <path
+        fill="#FFFFFF"
+        d="M250 150 H774 A116 116 0 0 1 890 266 V626 A116 116 0 0 1 774 742 H470 L282 878 C264 891 242 877 246 856 L262 742 H250 A116 116 0 0 1 134 626 V266 A116 116 0 0 1 250 150 Z"
+    />
+
+    <path fill="#4F46E5" d="M512 236 C534 376 572 414 712 446 C572 478 534 516 512 656 C490 516 452 478 312 446 C452 414 490 376 512 236 Z" />
+</svg>

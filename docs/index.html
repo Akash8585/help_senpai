@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Senpai — your AI copilot for interviews</title>
+        <meta
+            name="description"
+            content="Senpai listens to your call, reads your screen on demand, and shows ready-to-say answers grounded in your resume, GitHub repos and notes. Free mode with Gemini + Groq. Open source."
+        />
+        <meta name="theme-color" content="#0a0816" />
+        <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="assets/logo-512.png" />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Senpai — your AI copilot for interviews" />
+        <meta property="og:description" content="Live answers from your resume, repos and notes. Free with Gemini + Groq. Open source." />
+        <meta property="og:image" content="https://akash8585.github.io/help_senpai/assets/og.png" />
+        <meta property="og:url" content="https://akash8585.github.io/help_senpai/" />
+        <meta name="twitter:card" content="summary_large_image" />
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <div class="bg" aria-hidden="true">
+            <div class="blob b1"></div>
+            <div class="blob b2"></div>
+            <div class="blob b3"></div>
+            <div class="grain"></div>
+        </div>
+
+        <header class="nav">
+            <a class="brand" href="#top" aria-label="Senpai home">
+                <img src="assets/favicon.svg" alt="" width="28" height="28" />
+                <span>Senpai</span>
+            </a>
+            <nav class="nav-links" aria-label="Sections">
+                <a href="#features">Features</a>
+                <a href="#how">How it works</a>
+                <a href="#free">Free</a>
+                <a href="#faq">FAQ</a>
+            </nav>
+            <div class="nav-actions">
+                <a class="btn ghost small gh" href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+                        <path
+                            fill="currentColor"
+                            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                        />
+                    </svg>
+                    <span>Star</span>
+                    <span class="star-count" data-stars hidden></span>
+                </a>
+                <a class="btn primary small" href="#download" data-download>Download</a>
+            </div>
+        </header>
+
+        <main id="top">
+            <!-- ───────── Hero ───────── -->
+            <section class="hero">
+                <div class="hero-copy reveal">
+                    <a class="pill" href="#free"><span class="pill-dot"></span> New: free mode with Gemini + Groq <span aria-hidden="true">→</span></a>
+                    <h1>Never blank on a question <span class="grad">again.</span></h1>
+                    <p class="lead">
+                        Senpai listens to the call, reads your screen when you ask, and shows a ready-to-say answer in a tiny overlay. It knows your
+                        resume, your GitHub repo and your notes, so the answers sound like <em>you</em>.
+                    </p>
+                    <div class="cta-row" id="download">
+                        <a class="btn primary big" href="https://github.com/Akash8585/help_senpai/releases/latest/download/Senpai-Setup.exe" data-download>
+                            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                                <path fill="currentColor" d="M3 5.5 10.5 4.4v7.1H3zm0 13 7.5 1.1v-7H3zm8.5 1.3L21 21.2V12.6h-9.5zm0-15.6v7.4H21V2.8z" />
+                            </svg>
+                            Download for Windows
+                        </a>
+                        <a class="btn ghost big" href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">View on GitHub</a>
+                    </div>
+                    <p class="meta"><span data-version>v0.1.4</span> · Windows 10/11 · <span data-size>~115 MB</span> · Free &amp; open source</p>
+                    <p class="meta subtle">macOS &amp; Linux: <a href="https://github.com/Akash8585/help_senpai#development">run from source</a></p>
+                </div>
+
+                <div class="hero-visual reveal" data-tilt>
+                    <div class="window">
+                        <div class="window-bar"><i></i><i></i><i></i></div>
+                        <img
+                            src="assets/screens/session.webp"
+                            alt="Senpai session: a coding answer with approach, complexity and Python code, next to a notes side panel"
+                            width="1375"
+                            height="1000"
+                            fetchpriority="high"
+                        />
+                    </div>
+                    <div class="float chip-them">
+                        <span class="tag them">Them</span> “Longest substring without repeating characters?”
+                    </div>
+                    <div class="float chip-listen"><span class="live-dot"></span> Listening…</div>
+                    <div class="float chip-keys"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> solve my screen</div>
+                </div>
+            </section>
+
+            <!-- ───────── Marquee ───────── -->
+            <div class="marquee" aria-label="Works for">
+                <div class="marquee-track">
+                    <span>DSA rounds</span><span>System design</span><span>Behavioral · STAR</span><span>Take-home walkthroughs</span
+                    ><span>Internship interviews</span><span>Mock interviews</span><span>Group discussions</span><span>Sales calls</span
+                    ><span>Presentations</span><span>Team meetings</span>
+                    <span aria-hidden="true">DSA rounds</span><span aria-hidden="true">System design</span><span aria-hidden="true">Behavioral · STAR</span
+                    ><span aria-hidden="true">Take-home walkthroughs</span><span aria-hidden="true">Internship interviews</span
+                    ><span aria-hidden="true">Mock interviews</span><span aria-hidden="true">Group discussions</span><span aria-hidden="true">Sales calls</span
+                    ><span aria-hidden="true">Presentations</span><span aria-hidden="true">Team meetings</span>
+                </div>
+            </div>
+
+            <!-- ───────── Live demo ───────── -->
+            <section class="section demo-section">
+                <div class="section-head reveal">
+                    <span class="eyebrow">Live demo</span>
+                    <h2>Watch it think.</h2>
+                    <p>The interviewer speaks, Senpai transcribes it and streams an answer before the silence gets awkward.</p>
+                </div>
+                <div class="demo reveal">
+                    <div class="demo-tabs" role="tablist" aria-label="Demo examples">
+                        <button role="tab" data-demo="0" aria-selected="true">DSA</button>
+                        <button role="tab" data-demo="1" aria-selected="false">System design</button>
+                        <button role="tab" data-demo="2" aria-selected="false">About you</button>
+                    </div>
+                    <div class="demo-grid">
+                        <div class="demo-card transcript">
+                            <div class="demo-label"><span class="live-dot"></span> Transcript</div>
+                            <p class="demo-them"><span class="tag them">Them</span> <span data-demo-question></span><span class="caret"></span></p>
+                        </div>
+                        <div class="demo-card answer">
+                            <div class="demo-label">✦ Senpai</div>
+                            <div class="demo-answer" data-demo-answer aria-live="polite"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ───────── Features ───────── -->
+            <section class="section" id="features">
+                <div class="section-head reveal">
+                    <span class="eyebrow">Features</span>
+                    <h2>Your senpai, on call.</h2>
+                    <p>Everything you need for the hard part of an interview: thinking on the spot.</p>
+                </div>
+
+                <div class="bento">
+                    <article class="card span-2 reveal">
+                        <div class="card-icon">🎧</div>
+                        <h3>Hears the question</h3>
+                        <p>
+                            Captures the call audio, detects speech on your PC and transcribes each sentence with Whisper. Lines are tagged
+                            <span class="tag them">Them</span> or <span class="tag me">Me</span>, so it only answers the interviewer.
+                        </p>
+                    </article>
+                    <article class="card reveal">
+                        <div class="card-icon">⚡</div>
+                        <h3>Solves your screen</h3>
+                        <p>Press <kbd>Ctrl</kbd>+<kbd>Enter</kbd> and a vision model reads the problem on screen: approach, complexity, full code.</p>
+                    </article>
+                    <article class="card reveal">
+                        <div class="card-icon">🧠</div>
+                        <h3>Knows your stuff</h3>
+                        <p>Add your resume, portfolio, GitHub repos and the company assignment. Answers use your real projects, never made-up ones.</p>
+                    </article>
+                    <article class="card span-2 shot reveal">
+                        <div>
+                            <div class="card-icon">📚</div>
+                            <h3>Context page</h3>
+                            <p>PDF/DOCX resumes, any website, Google Docs, Notion and whole GitHub repos, condensed to fit the model.</p>
+                        </div>
+                        <img src="assets/screens/context.webp" alt="Senpai Context page with a resume, assignment and GitHub repo" loading="lazy" width="1375" height="1000" />
+                    </article>
+                    <article class="card span-2 shot reveal">
+                        <div>
+                            <div class="card-icon">📝</div>
+                            <h3>Notes side panel</h3>
+                            <p>STAR stories, cheat sheets, questions to ask. Paste a doc to split it into chunks, open them next to the answers mid-call.</p>
+                        </div>
+                        <img src="assets/screens/notes.webp" alt="Senpai Notes page with note chunks" loading="lazy" width="1375" height="1000" />
+                    </article>
+                    <article class="card reveal">
+                        <div class="card-icon">🎯</div>
+                        <h3>Built for tech rounds</h3>
+                        <p>DSA answers with complexity and edge cases. System design with requirements, data model, scaling and trade-offs.</p>
+                    </article>
+                    <article class="card reveal">
+                        <div class="card-icon">💸</div>
+                        <h3>Free mode</h3>
+                        <p>Google Gemini for answers + Groq Whisper for speech. Two free API keys, no credit card.</p>
+                    </article>
+                    <article class="card reveal">
+                        <div class="card-icon">🧩</div>
+                        <h3>Any model you like</h3>
+                        <p>Hundreds of models through OpenRouter, free <code>:free</code> ones included, or a fully offline local mode.</p>
+                    </article>
+                    <article class="card reveal">
+                        <div class="card-icon">🔒</div>
+                        <h3>Your data stays yours</h3>
+                        <p>Keys, notes and history live on your PC. Open source under GPL-3.0, so you can read every line.</p>
+                    </article>
+                </div>
+            </section>
+
+            <!-- ───────── How it works ───────── -->
+            <section class="section" id="how">
+                <div class="section-head reveal">
+                    <span class="eyebrow">How it works</span>
+                    <h2>Ready in three minutes.</h2>
+                </div>
+                <div class="steps">
+                    <div class="steps-list">
+                        <div class="step reveal">
+                            <span class="step-num">01</span>
+                            <div>
+                                <h3>Download &amp; pick “Free”</h3>
+                                <p>
+                                    Install Senpai, click <b>Quick setup → Free</b> and paste a free
+                                    <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Gemini key</a> and a free
+                                    <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Groq key</a>.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="step reveal">
+                            <span class="step-num">02</span>
+                            <div>
+                                <h3>Add your context</h3>
+                                <p>Drop in your resume, portfolio and repo on the Context page. Jot STAR stories on the Notes page.</p>
+                            </div>
+                        </div>
+                        <div class="step reveal">
+                            <span class="step-num">03</span>
+                            <div>
+                                <h3>Start a session</h3>
+                                <p>Press <kbd>Ctrl</kbd>+<kbd>Enter</kbd>, share your screen once, and answers appear as the interviewer talks.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="steps-visual reveal">
+                        <div class="window small">
+                            <div class="window-bar"><i></i><i></i><i></i></div>
+                            <img src="assets/screens/home.webp" alt="Senpai Home screen with Quick setup set to Free" loading="lazy" width="1375" height="1000" />
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ───────── Free / plans ───────── -->
+            <section class="section" id="free">
+                <div class="section-head reveal">
+                    <span class="eyebrow">Pricing</span>
+                    <h2>$0 is a valid option.</h2>
+                    <p>Senpai itself is free. You only choose which AI service does the thinking.</p>
+                </div>
+                <div class="plans">
+                    <article class="plan featured reveal">
+                        <div class="plan-badge">Best for students</div>
+                        <h3>Free</h3>
+                        <div class="price">$0<span>/forever</span></div>
+                        <ul>
+                            <li>Answers + screenshots: <b>Gemini 3.8 Flash</b></li>
+                            <li>Speech-to-text: <b>Groq Whisper Turbo</b></li>
+                            <li>Two free keys, no card</li>
+                            <li class="muted">Free-tier limits per minute &amp; day</li>
+                        </ul>
+                        <a class="btn primary" href="https://github.com/Akash8585/help_senpai/releases/latest/download/Senpai-Setup.exe" data-download>Get Senpai</a>
+                    </article>
+                    <article class="plan reveal">
+                        <h3>OpenRouter free</h3>
+                        <div class="price">$0<span>/day</span></div>
+                        <ul>
+                            <li>Free <code>:free</code> models like Gemma 4</li>
+                            <li>Auto-fallback when one is busy</li>
+                            <li>50 answers/day, or 1,000/day after a one-time $10 top-up</li>
+                        </ul>
+                        <a class="btn ghost" href="https://openrouter.ai/models?max_price=0" target="_blank" rel="noopener">See free models</a>
+                    </article>
+                    <article class="plan reveal">
+                        <h3>Pro</h3>
+                        <div class="price small-price">Pay per use<span>· about 1¢ per hour of audio, plus answers</span></div>
+                        <ul>
+                            <li>Any of hundreds of models on OpenRouter</li>
+                            <li>Fastest and most reliable</li>
+                            <li>Live cost meter in every session</li>
+                        </ul>
+                        <a class="btn ghost" href="https://openrouter.ai/keys" target="_blank" rel="noopener">Get an OpenRouter key</a>
+                    </article>
+                </div>
+            </section>
+
+            <!-- ───────── Shortcuts ───────── -->
+            <section class="section shortcuts reveal">
+                <h2 class="small-h">Keyboard-first.</h2>
+                <div class="shortcut-grid">
+                    <div><span><kbd>Ctrl</kbd><kbd>Enter</kbd></span>Start / solve screen</div>
+                    <div><span><kbd>Ctrl</kbd><kbd>\</kbd></span>Show / hide</div>
+                    <div><span><kbd>Ctrl</kbd><kbd>M</kbd></span>Click-through</div>
+                    <div><span><kbd>Ctrl</kbd><kbd>↑↓←→</kbd></span>Move window</div>
+                    <div><span><kbd>Ctrl</kbd><kbd>[</kbd><kbd>]</kbd></span>Previous / next answer</div>
+                    <div><span><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>E</kbd></span>Emergency erase</div>
+                </div>
+            </section>
+
+            <!-- ───────── FAQ ───────── -->
+            <section class="section" id="faq">
+                <div class="section-head reveal">
+                    <span class="eyebrow">FAQ</span>
+                    <h2>Questions, answered.</h2>
+                </div>
+                <div class="faq reveal">
+                    <details>
+                        <summary>Is it actually free?</summary>
+                        <p>
+                            Yes. The app is free and open source. With the Free setup, Google Gemini and Groq both give free API keys with daily limits,
+                            no credit card needed. You only pay if you choose paid OpenRouter models.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Windows says “Windows protected your PC”. Is that normal?</summary>
+                        <p>
+                            The installer isn’t code-signed yet, so SmartScreen warns about an unknown publisher. Click <b>More info → Run anyway</b>. The
+                            full source is on GitHub if you want to check or build it yourself.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Where does my data go?</summary>
+                        <p>
+                            Your keys, notes, context and history are stored on your PC. Speech clips, transcripts, screenshots and your context are sent
+                            to the AI provider you picked to get an answer. Free tiers may use content to improve their models, so check their policies
+                            before sharing anything private.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Does it work on Mac or Linux?</summary>
+                        <p>
+                            The download is for Windows 10/11. On macOS and Linux you can run it from source with <code>npm install</code> and
+                            <code>npm start</code>.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Can it run without internet?</summary>
+                        <p>Yes, there’s a Local AI mode that runs Whisper and a small model on your own PC. It’s slower and needs a decent machine.</p>
+                    </details>
+                    <details>
+                        <summary>Am I allowed to use it?</summary>
+                        <p>
+                            That depends on where you use it. Many companies, schools and exams don’t allow AI help during live interviews or tests, so
+                            read their rules first. Senpai is great for mock interviews, practice rounds, meetings and presentations.
+                        </p>
+                    </details>
+                </div>
+            </section>
+
+            <!-- ───────── Final CTA ───────── -->
+            <section class="final reveal">
+                <img src="assets/logo.svg" alt="" width="96" height="96" class="final-logo" />
+                <h2>Go get that offer.</h2>
+                <p>Free, open source, and ready before your next interview.</p>
+                <div class="cta-row center">
+                    <a class="btn primary big" href="https://github.com/Akash8585/help_senpai/releases/latest/download/Senpai-Setup.exe" data-download
+                        >Download for Windows</a
+                    >
+                    <a class="btn ghost big" href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">★ Star on GitHub</a>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="brand"><img src="assets/favicon.svg" alt="" width="22" height="22" /> <span>Senpai</span></div>
+            <nav aria-label="Footer">
+                <a href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://github.com/Akash8585/help_senpai/releases" target="_blank" rel="noopener">Releases</a>
+                <a href="https://github.com/Akash8585/help_senpai/issues" target="_blank" rel="noopener">Report a bug</a>
+                <a href="https://github.com/Akash8585/help_senpai/blob/main/LICENSE" target="_blank" rel="noopener">GPL-3.0</a>
+            </nav>
+            <p class="credit">
+                Based on <a href="https://github.com/sohzm/cheating-daddy" target="_blank" rel="noopener">cheating-daddy</a> by sohzm. Use responsibly and
+                follow the rules of every interview, class and exam.
+            </p>
+        </footer>
+
+        <script src="main.js" defer></script>
+    </body>
+</html>

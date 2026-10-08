@@ -2,6 +2,12 @@
 
 # Senpai
 
+<p>
+  <a href="https://akash8585.github.io/help_senpai/"><b>Website</b></a> ·
+  <a href="https://github.com/Akash8585/help_senpai/releases/latest/download/Senpai-Setup.exe"><b>Download for Windows</b></a> ·
+  <a href="https://github.com/Akash8585/help_senpai/releases">All releases</a>
+</p>
+
 A real-time AI assistant for calls, interviews, presentations and meetings. Senpai listens to the conversation,
 reads your screen on demand, and shows short, ready-to-use answers in a transparent always-on-top overlay.
 
@@ -137,6 +143,7 @@ Key files:
 - `src/utils/knowledge.js` — Context page backend (resume/portfolio/assignment/repo fetching, prompt budget)
 - `src/utils/localai.js` — local llama.cpp / whisper.cpp mode
 - `src/components/views/MainView.js` — setup screen
+- `docs/` — the launch website (static, served by GitHub Pages from `main` / `docs`)
 
 ## License
 
