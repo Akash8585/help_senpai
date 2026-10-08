@@ -3,7 +3,7 @@
 # Senpai
 
 <p>
-  <a href="https://akash8585.github.io/help_senpai/"><b>Website</b></a> ·
+  <a href="https://senpai-rouge.vercel.app/"><b>Website</b></a> ·
   <a href="https://github.com/Akash8585/help_senpai/releases/latest/download/Senpai-Setup.exe"><b>Download for Windows</b></a> ·
   <a href="https://github.com/Akash8585/help_senpai/releases">All releases</a>
 </p>
@@ -143,7 +143,7 @@ Key files:
 - `src/utils/knowledge.js` — Context page backend (resume/portfolio/assignment/repo fetching, prompt budget)
 - `src/utils/localai.js` — local llama.cpp / whisper.cpp mode
 - `src/components/views/MainView.js` — setup screen
-- `docs/` — the launch website (static, served by GitHub Pages from `main` / `docs`)
+- `docs/` — the launch website (static, deployed on Vercel from `docs/`)
 
 ## License
 
