@@ -25,6 +25,10 @@
     --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
     --gutter: clamp(16px, 4vw, 40px);
     --max: 1180px;
+    --dot: rgba(17, 17, 20, 0.13);
+    --nav-bg: rgba(255, 255, 255, 0.88);
+    --on-color: #111114; /* text on lime/pastel fills, same in both themes */
+    color-scheme: light;
 }
 
 * {
@@ -46,7 +50,7 @@ body {
     overflow-x: hidden;
     background-color: var(--paper);
     /* dot grid */
-    background-image: radial-gradient(circle, rgba(17, 17, 20, 0.13) 1px, transparent 1.4px);
+    background-image: radial-gradient(circle, var(--dot) 1px, transparent 1.4px);
     background-size: 22px 22px;
 }
 
@@ -249,7 +253,7 @@ mark {
     padding: 9px 10px 9px 16px;
     border: var(--border);
     border-radius: 18px;
-    background: rgba(255, 255, 255, 0.88);
+    background: var(--nav-bg);
     backdrop-filter: blur(10px);
     box-shadow: var(--shadow);
 }
@@ -1445,5 +1449,212 @@ h2 {
     .reveal {
         opacity: 1;
         transform: none;
+    }
+}
+
+/* ───────── Theme toggle ───────── */
+
+.theme-toggle {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 38px;
+    padding: 0;
+    border: var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+    cursor: pointer;
+    transition:
+        transform 0.12s ease,
+        box-shadow 0.12s ease;
+}
+
+.theme-toggle:hover {
+    transform: translate(-2px, -2px) rotate(-8deg);
+    box-shadow: 5px 5px 0 var(--ink);
+}
+
+.theme-toggle:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--ink);
+}
+
+.theme-toggle:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.theme-toggle svg {
+    width: 20px;
+    height: 20px;
+    transition:
+        transform 0.4s cubic-bezier(0.2, 1.4, 0.4, 1),
+        opacity 0.2s;
+}
+
+.theme-toggle .moon {
+    position: absolute;
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.4);
+}
+
+[data-theme='dark'] .theme-toggle .sun {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.4);
+}
+
+[data-theme='dark'] .theme-toggle .moon {
+    opacity: 1;
+    transform: none;
+}
+
+/* Circular reveal when switching themes (View Transitions API) */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+/* ───────── Dark theme ───────── */
+
+[data-theme='dark'] {
+    --paper: #111116;
+    --paper-2: #1a1a21;
+    --surface: #1c1c24;
+    --ink: #f3f2ec;
+    --ink-2: #d9d8d2;
+    --muted: #a9a8b3;
+    --faint: #7d7c88;
+    --line: #2d2d37;
+    --accent: #6d6cff;
+    --lime: #d4ff3a;
+    --dot: rgba(255, 255, 255, 0.07);
+    --nav-bg: rgba(24, 24, 31, 0.86);
+    color-scheme: dark;
+}
+
+/* Text sitting on lime or pastel fills stays dark in both themes */
+[data-theme='dark'] :is(mark, .rotator, .pill-new, .plan-badge, .step-num, .tag, .s-free, .s-keys, .s-oss, .card.c-blue, .card.c-lime, .card.c-pink, .final) {
+    color: var(--on-color);
+}
+
+[data-theme='dark'] :is(.card.c-blue, .card.c-lime, .card.c-pink) p,
+[data-theme='dark'] .final p {
+    color: #2b2b31;
+}
+
+[data-theme='dark'] .rotator-caret {
+    background: var(--on-color);
+}
+
+[data-theme='dark'] .faq summary::after {
+    color: var(--on-color);
+}
+
+[data-theme='dark'] kbd.pressed,
+[data-theme='dark'] .shortcut-grid div.lit,
+[data-theme='dark'] .shortcut-grid div.lit kbd {
+    color: var(--on-color);
+}
+
+[data-theme='dark'] .shortcut-grid div.lit kbd {
+    border-color: var(--on-color);
+}
+
+[data-theme='dark'] .plan li::before {
+    color: var(--on-color);
+    border-color: var(--on-color);
+}
+
+/* Highlighter bands read better as lime text on dark */
+[data-theme='dark'] .hl {
+    background: none;
+    color: var(--lime);
+}
+
+[data-theme='dark'] .final .hl {
+    color: var(--on-color);
+    background: linear-gradient(transparent 58%, #fff 58%, #fff 92%, transparent 92%);
+}
+
+/* Elements that used ink as a fill */
+[data-theme='dark'] .btn.dark {
+    color: var(--paper);
+}
+
+[data-theme='dark'] .demo-tabs button[aria-selected='true'] {
+    color: var(--paper);
+}
+
+[data-theme='dark'] .marquee {
+    background: var(--lime);
+}
+
+[data-theme='dark'] .marquee-track span {
+    color: var(--on-color);
+}
+
+[data-theme='dark'] .marquee-track span::before {
+    color: var(--on-color);
+}
+
+[data-theme='dark'] .plan.featured {
+    background: var(--ink);
+    color: var(--on-color);
+    box-shadow: 7px 7px 0 var(--accent);
+}
+
+[data-theme='dark'] .plan.featured ul {
+    color: #45444d;
+}
+
+[data-theme='dark'] .plan.featured li b {
+    color: var(--on-color);
+}
+
+[data-theme='dark'] .plan.featured .price span {
+    color: #6d6c76;
+}
+
+/* Pastel cards and the CTA keep dark outlines so they pop on the dark page */
+[data-theme='dark'] :is(.card.c-blue, .card.c-lime, .card.c-pink) .card-icon {
+    background: #fff;
+}
+
+[data-theme='dark'] .final .btn.outline {
+    background: #fff;
+    color: var(--on-color);
+}
+
+[data-theme='dark'] .demo-card.transcript {
+    background: var(--paper-2);
+}
+
+[data-theme='dark'] .card.shot {
+    background: var(--paper-2);
+}
+
+[data-theme='dark'] code {
+    background: var(--paper-2);
+}
+
+[data-theme='dark'] ::selection {
+    color: var(--on-color);
+}
+
+[data-theme='dark'] .plan.featured li.muted::before {
+    background: #e7e5dd;
+}
+
+@media (max-width: 480px) {
+    .nav .gh {
+        display: none;
+    }
+
+    .nav-actions {
+        gap: 8px;
     }
 }
