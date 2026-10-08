@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Terms and Conditions — Help Senpai</title>
+        <meta name="description" content="Terms for using the free, open-source Help Senpai app and website." />
+        <meta name="theme-color" content="#f6f5f1" />
+        <link rel="canonical" href="https://help-senpai.vercel.app/terms" />
+        <meta name="robots" content="index, follow" />
+        <link rel="manifest" href="site.webmanifest" />
+        <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="assets/logo-512.png" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Help Senpai" />
+        <meta property="og:title" content="Terms and Conditions — Help Senpai" />
+        <meta property="og:description" content="Terms for using the free, open-source Help Senpai app and website." />
+        <meta property="og:image" content="https://help-senpai.vercel.app/assets/og.png" />
+        <meta property="og:url" content="https://help-senpai.vercel.app/terms" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <script>
+            (function () {
+                var theme = null;
+                try {
+                    theme = localStorage.getItem('senpai-theme');
+                } catch (e) {}
+                if (theme !== 'light' && theme !== 'dark') {
+                    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', theme);
+            })();
+        </script>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <header class="nav">
+            <a class="brand" href="./" aria-label="Help Senpai home">
+                <img src="assets/favicon.svg" alt="" width="30" height="30" />
+                <span>Help Senpai</span>
+            </a>
+            <nav class="nav-links" aria-label="Legal">
+                <a href="privacy.html">Privacy</a>
+                <a href="terms.html" aria-current="page">Terms</a>
+            </nav>
+            <div class="nav-actions">
+                <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode" title="Toggle dark mode">
+                    <svg
+                        class="sun"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.2"
+                        stroke-linecap="round"
+                        aria-hidden="true"
+                    >
+                        <circle cx="12" cy="12" r="4.5" fill="currentColor" />
+                        <path d="M12 1.5v2.5M12 20v2.5M1.5 12H4M20 12h2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8" />
+                    </svg>
+                    <svg class="moon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="currentColor" d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a.6.6 0 0 0-.8-.7A9.8 9.8 0 1 0 21.2 15.4a.6.6 0 0 0-.7-.8Z" />
+                        <path fill="#d4ff3a" d="M17 3l.7 1.8L19.5 5.5l-1.8.7L17 8l-.7-1.8-1.8-.7 1.8-.7z" />
+                    </svg>
+                </button>
+                <a class="btn dark small" href="./">Home</a>
+            </div>
+        </header>
+
+        <main class="legal">
+            <p class="legal-kicker">Legal</p>
+            <h1>Terms and Conditions</h1>
+            <p class="legal-updated">Last updated October 8, 2026</p>
+
+            <p>
+                These terms apply to your use of the Help Senpai desktop app ("the app") and this website. By downloading, installing or using the
+                app, you agree to them. If you do not agree, do not use the app.
+            </p>
+
+            <h2>1. Software license</h2>
+            <p>
+                Help Senpai is free, open-source software released under the
+                <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GNU General Public License v3.0</a>. It is based on
+                <a href="https://github.com/sohzm/cheating-daddy" target="_blank" rel="noopener">cheating-daddy</a> by sohzm. The GPL governs your
+                rights to use, copy, modify and share the software. Nothing in these terms limits those rights. These terms add the rules for
+                responsible use and explain what we are and are not responsible for.
+            </p>
+
+            <h2>2. Acceptable use</h2>
+            <p>You are responsible for how you use the app. You agree not to use it:</p>
+            <ul>
+                <li>
+                    in any interview, test, exam, assessment, class or competition where outside help or AI assistance is not allowed, or in any other
+                    way that breaks the rules you agreed to or misrepresents your own work or abilities;
+                </li>
+                <li>to record or transcribe people without the notice or consent that applicable law requires;</li>
+                <li>to capture confidential information you are not allowed to share with third-party services;</li>
+                <li>for anything illegal, or to harass, deceive or harm others.</li>
+            </ul>
+            <p>
+                Help Senpai is meant for practice, preparation, and situations where AI help is openly allowed. When in doubt, ask the organizer or
+                interviewer.
+            </p>
+
+            <h2>3. Third-party AI providers</h2>
+            <p>
+                The app works with AI providers you choose, such as OpenRouter, Google Gemini and Groq, using API keys you create with them. Your use
+                of those services is governed by their own terms and policies, including their usage limits, fees and acceptable-use rules. You are
+                responsible for any charges on your provider accounts. We do not control those services and are not responsible for their
+                availability, cost, or how they handle data.
+            </p>
+
+            <h2>4. AI output</h2>
+            <p>
+                Answers are generated by AI models and can be wrong, incomplete, outdated or inappropriate. Check anything important yourself before
+                you rely on it or repeat it. The app does not provide legal, medical, financial or other professional advice.
+            </p>
+
+            <h2>5. Your content</h2>
+            <p>
+                You keep ownership of everything you put into the app, including notes, resumes, repositories and documents. You confirm that you have
+                the right to use that content and to send it to the AI provider you choose. How the app stores and sends data is described in the
+                <a href="privacy.html">Privacy Policy</a>.
+            </p>
+
+            <h2>6. Updates</h2>
+            <p>
+                The Windows app checks for updates automatically and downloads new versions in the background. An update is installed when you choose
+                <em>Restart to update</em> or the next time the app restarts. Your notes, context and settings are kept across updates. Features may
+                change or be removed in new versions.
+            </p>
+
+            <h2>7. No warranty</h2>
+            <p>
+                The app and website are provided <strong>"as is" and "as available", without warranties of any kind</strong>, whether express or
+                implied, including merchantability, fitness for a particular purpose and non-infringement, to the extent permitted by law. See
+                sections 15 and 16 of the GPL-3.0. We do not guarantee that the app will work without errors, stay available, or produce particular
+                results, including any outcome in an interview or exam.
+            </p>
+
+            <h2>8. Limitation of liability</h2>
+            <p>
+                To the fullest extent permitted by law, the Help Senpai contributors are not liable for any indirect, incidental, special,
+                consequential or punitive damages, or for any loss of data, opportunities, employment, academic standing or profits, arising from your
+                use of the app, its output, or third-party services. Some places do not allow these limits, so they may not fully apply to you.
+            </p>
+
+            <h2>9. Changes to these terms</h2>
+            <p>
+                We may update these terms. The date at the top shows the latest version, and the full history is public in the
+                <a href="https://github.com/Akash8585/help_senpai/commits/main/docs/terms.html" target="_blank" rel="noopener">repository</a>.
+                Continuing to use the app after a change means you accept the new terms.
+            </p>
+
+            <h2>10. Contact</h2>
+            <p>
+                Questions about these terms? Open an issue on
+                <a href="https://github.com/Akash8585/help_senpai/issues" target="_blank" rel="noopener">GitHub</a>.
+            </p>
+        </main>
+
+        <footer class="footer">
+            <div class="brand"><img src="assets/favicon.svg" alt="" width="24" height="24" /> <span>Help Senpai</span></div>
+            <nav aria-label="Footer">
+                <a href="./">Home</a>
+                <a href="privacy.html">Privacy</a>
+                <a href="terms.html">Terms</a>
+                <a href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://github.com/Akash8585/help_senpai/issues" target="_blank" rel="noopener">Contact</a>
+            </nav>
+        </footer>
+        <script src="theme.js" defer></script>
+    </body>
+</html>

@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Privacy Policy — Help Senpai</title>
+        <meta
+            name="description"
+            content="How Help Senpai handles your data: stored on your device, sent only to the AI provider you choose, no analytics."
+        />
+        <meta name="theme-color" content="#f6f5f1" />
+        <link rel="canonical" href="https://help-senpai.vercel.app/privacy" />
+        <meta name="robots" content="index, follow" />
+        <link rel="manifest" href="site.webmanifest" />
+        <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="assets/logo-512.png" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Help Senpai" />
+        <meta property="og:title" content="Privacy Policy — Help Senpai" />
+        <meta
+            property="og:description"
+            content="How Help Senpai handles your data: stored on your device, sent only to the AI provider you choose, no analytics."
+        />
+        <meta property="og:image" content="https://help-senpai.vercel.app/assets/og.png" />
+        <meta property="og:url" content="https://help-senpai.vercel.app/privacy" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <script>
+            (function () {
+                var theme = null;
+                try {
+                    theme = localStorage.getItem('senpai-theme');
+                } catch (e) {}
+                if (theme !== 'light' && theme !== 'dark') {
+                    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', theme);
+            })();
+        </script>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <header class="nav">
+            <a class="brand" href="./" aria-label="Help Senpai home">
+                <img src="assets/favicon.svg" alt="" width="30" height="30" />
+                <span>Help Senpai</span>
+            </a>
+            <nav class="nav-links" aria-label="Legal">
+                <a href="privacy.html" aria-current="page">Privacy</a>
+                <a href="terms.html">Terms</a>
+            </nav>
+            <div class="nav-actions">
+                <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode" title="Toggle dark mode">
+                    <svg
+                        class="sun"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.2"
+                        stroke-linecap="round"
+                        aria-hidden="true"
+                    >
+                        <circle cx="12" cy="12" r="4.5" fill="currentColor" />
+                        <path d="M12 1.5v2.5M12 20v2.5M1.5 12H4M20 12h2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8" />
+                    </svg>
+                    <svg class="moon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="currentColor" d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a.6.6 0 0 0-.8-.7A9.8 9.8 0 1 0 21.2 15.4a.6.6 0 0 0-.7-.8Z" />
+                        <path fill="#d4ff3a" d="M17 3l.7 1.8L19.5 5.5l-1.8.7L17 8l-.7-1.8-1.8-.7 1.8-.7z" />
+                    </svg>
+                </button>
+                <a class="btn dark small" href="./">Home</a>
+            </div>
+        </header>
+
+        <main class="legal">
+            <p class="legal-kicker">Legal</p>
+            <h1>Privacy Policy</h1>
+            <p class="legal-updated">Last updated October 8, 2026</p>
+
+            <div class="legal-summary">
+                <h2>The short version</h2>
+                <ul>
+                    <li>Help Senpai has <strong>no accounts, no servers of its own and no analytics</strong>.</li>
+                    <li>Your notes, context, history, settings and API keys are stored <strong>only on your computer</strong>.</li>
+                    <li>
+                        When you use a cloud AI provider, the audio, screenshots and text needed for an answer go
+                        <strong>directly from your computer to the provider you chose</strong>, using your own API key.
+                    </li>
+                    <li>In Local AI mode, answers and transcription run on your computer and nothing is sent to an AI provider.</li>
+                </ul>
+            </div>
+
+            <h2>Who this policy covers</h2>
+            <p>
+                This policy describes how the Help Senpai desktop app ("the app") and this website (help-senpai.vercel.app) handle information. Help
+                Senpai is an open-source project, so you can check everything here against the
+                <a href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">source code</a>.
+            </p>
+
+            <h2>Information stored on your computer</h2>
+            <p>
+                The app saves the following in a <code>senpai-config</code> folder in your user profile (for example
+                <code>%APPDATA%\senpai-config</code> on Windows):
+            </p>
+            <ul>
+                <li><strong>Settings and preferences</strong>, such as the provider and models you picked, your language and your shortcuts.</li>
+                <li>
+                    <strong>API keys</strong> you enter for OpenRouter, Google Gemini or Groq. They are stored in a plain JSON file on your device and
+                    are only sent to the provider they belong to.
+                </li>
+                <li><strong>Notes</strong> you write in the Notes page.</li>
+                <li><strong>Instructions</strong> you type on the Context page, such as the role, company and interview format.</li>
+                <li>
+                    <strong>Context</strong> you add: resume or portfolio text, assignment details, and text pulled from GitHub repositories, web
+                    pages, PDF and DOCX files you choose.
+                </li>
+                <li><strong>Session history</strong>: transcripts and answers from past sessions.</li>
+            </ul>
+            <p>
+                We cannot see or access this folder. You can delete individual sessions and notes in the app, erase everything with
+                <em>Settings → Clear all data</em>, or delete the folder yourself. Uninstalling the app does not delete this folder, so your notes
+                survive reinstalls and updates.
+            </p>
+
+            <h2>Information sent to AI providers</h2>
+            <p>
+                To produce an answer, the app sends a request directly from your computer to the provider you selected:
+                <a href="https://openrouter.ai/privacy" target="_blank" rel="noopener">OpenRouter</a>,
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google (Gemini API)</a> or
+                <a href="https://groq.com/privacy-policy/" target="_blank" rel="noopener">Groq</a>. Depending on what you do, a request can contain:
+            </p>
+            <ul>
+                <li>short recordings of speech picked up from system audio and, if enabled, your microphone, for transcription;</li>
+                <li>screenshots, only when you request one (for example with <kbd>Ctrl</kbd> + <kbd>Enter</kbd>);</li>
+                <li>messages you type and the recent conversation;</li>
+                <li>your custom instructions, and the context and notes you marked to share with the AI.</li>
+            </ul>
+            <p>
+                Each provider handles that data under its own privacy policy and terms, which may include logging, retention, or use for improving its
+                services, particularly on free tiers. OpenRouter forwards requests to the model's underlying provider. Please read the policies of the
+                providers you use and adjust their settings (for example data-sharing or training options) to suit you. Help Senpai does not receive a
+                copy.
+            </p>
+            <p>
+                In <strong>Local AI</strong> mode, transcription and answers run on your computer. The app only goes online to download the model
+                files you choose.
+            </p>
+
+            <h2>Other network requests the app makes</h2>
+            <ul>
+                <li>
+                    <strong>Context you add</strong>: when you add a GitHub repository or web page, the app downloads it from GitHub or that website.
+                </li>
+                <li>
+                    <strong>Model lists and key checks</strong>: the app asks your provider which models are available and whether your key works.
+                </li>
+                <li><strong>Local model downloads</strong>: Local AI models are downloaded from Hugging Face when you choose them.</li>
+                <li>
+                    <strong>Update checks</strong>: the Windows app checks for new versions through
+                    <a href="https://github.com/electron/update.electronjs.org" target="_blank" rel="noopener">update.electronjs.org</a>, a service
+                    run by the Electron project, and downloads updates from GitHub Releases. These requests include the app's version and your
+                    operating system, and, like any web request, your IP address. They include no personal content.
+                </li>
+            </ul>
+
+            <h2>This website</h2>
+            <p>
+                This website has no cookies, no analytics and no sign-up. It is hosted by
+                <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Vercel</a>, which may keep standard server logs such
+                as IP address and browser type. Fonts load from Google Fonts, the star count loads from the GitHub API, and downloads come from
+                GitHub, so those services see ordinary request information. Your light or dark theme choice is saved in your browser's local storage
+                and never leaves your device.
+            </p>
+
+            <h2>Recording other people</h2>
+            <p>
+                The app can transcribe audio that includes other people. Many places require you to tell people, or get their consent, before you
+                record or transcribe a conversation. You are responsible for following those laws and the rules of any meeting, interview, class or
+                exam. See our
+                <a href="terms.html">Terms</a>.
+            </p>
+
+            <h2>Children</h2>
+            <p>Help Senpai is not directed at children under 13, and we do not knowingly collect information from anyone.</p>
+
+            <h2>Security</h2>
+            <p>
+                Data in <code>senpai-config</code> is protected by your computer's user account, not by extra encryption. Anyone who can sign in to
+                your account can read it, so keep your device locked and your API keys private. If you think a key has leaked, revoke it in your
+                provider's dashboard.
+            </p>
+
+            <h2>Changes to this policy</h2>
+            <p>
+                If we change how the app handles data, we will update this page and the date at the top. The history of this page is public in the
+                <a href="https://github.com/Akash8585/help_senpai/commits/main/docs/privacy.html" target="_blank" rel="noopener">repository</a>.
+            </p>
+
+            <h2>Contact</h2>
+            <p>
+                Questions or concerns? Open an issue on
+                <a href="https://github.com/Akash8585/help_senpai/issues" target="_blank" rel="noopener">GitHub</a>.
+            </p>
+        </main>
+
+        <footer class="footer">
+            <div class="brand"><img src="assets/favicon.svg" alt="" width="24" height="24" /> <span>Help Senpai</span></div>
+            <nav aria-label="Footer">
+                <a href="./">Home</a>
+                <a href="privacy.html">Privacy</a>
+                <a href="terms.html">Terms</a>
+                <a href="https://github.com/Akash8585/help_senpai" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://github.com/Akash8585/help_senpai/issues" target="_blank" rel="noopener">Contact</a>
+            </nav>
+        </footer>
+        <script src="theme.js" defer></script>
+    </body>
+</html>
